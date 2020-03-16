@@ -23,4 +23,13 @@ defmodule DemoWeb.Router do
   # scope "/api", DemoWeb do
   #   pipe_through :api
   # end
+
+  ## New routes
+
+  scope "/", DemoWeb do
+    pipe_through :browser
+
+    get "/users/register", UserRegistrationController, :new
+    post "/users/register", UserRegistrationController, :create
+  end
 end
