@@ -8,11 +8,11 @@
   <% end %>
 
   <%= label f, :email %>
-  <%= text_input f, :email %>
+  <%= text_input f, :email, required: true %>
   <%= error_tag f, :email %>
 
   <%= label f, :password %>
-  <%= password_input f, :password %>
+  <%= password_input f, :password, required: true %>
   <%= error_tag f, :password %>
 
   <div>

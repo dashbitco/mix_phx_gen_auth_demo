@@ -15,7 +15,7 @@ defmodule DemoWeb.UserRegistrationController do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User created successfully.")
-        |> UserAuth.sign_in(user)
+        |> UserAuth.login_user(user)
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
