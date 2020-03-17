@@ -44,4 +44,12 @@ defmodule DemoWeb.Router do
 
     delete "/users/logout", UserSessionController, :delete
   end
+
+  scope "/", DemoWeb do
+    pipe_through [:browser]
+
+    get "/users/confirm/new", UserConfirmationController, :new
+    post "/users/confirm", UserConfirmationController, :create
+    get "/users/confirm/:token", UserConfirmationController, :confirm
+  end
 end

@@ -7,6 +7,7 @@ defmodule Demo.Accounts.User do
     field :password, :string, virtual: true
     field :encrypted_password, :string
     field :confirmed_at, :naive_datetime
+    has_many :tokens, Demo.Accounts.UserToken, foreign_key: :user_id
 
     timestamps()
   end
@@ -57,5 +58,13 @@ defmodule Demo.Accounts.User do
   def valid_password?(_) do
     Bcrypt.hash_pwd_salt("unused hash to avoid timing attacks")
     false
+  end
+
+  @doc """
+  Confirms the account by setting `confirmed_at`.
+  """
+  def confirm_changeset(user) do
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+    change(user, confirmed_at: now)
   end
 end

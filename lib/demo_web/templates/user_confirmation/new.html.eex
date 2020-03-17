@@ -1,0 +1,10 @@
+<h1>Resend confirmation instructions</h1>
+
+<%= form_for :user, Routes.user_confirmation_path(@conn, :create), fn f -> %>
+  <%= label f, :email %>
+  <%= text_input f, :email, required: true %>
+
+  <div>
+    <%= submit "Resend confirmation instructions" %>
+  </div>
+<% end %>
