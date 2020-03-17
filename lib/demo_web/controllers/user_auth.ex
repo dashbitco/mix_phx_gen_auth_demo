@@ -5,18 +5,36 @@ defmodule DemoWeb.UserAuth do
   alias Demo.Accounts
 
   @doc """
-  Must be invoked every time after login.
+  Logs the user in.
 
   It deletes the CSRF token and renews the session
   to avoid fixation attacks.
   """
   def login_user(conn, user) do
     Plug.CSRFProtection.delete_csrf_token()
+    token = Accounts.generate_to_be_signed_token(user, "session")
 
     conn
-    |> put_session(:user_id, user.id)
+    |> put_session(:user_token, token)
     |> configure_session(renew: true)
     |> redirect(to: signed_in_path(conn))
+  end
+
+  @doc """
+  Logs the user out.
+
+  It clears all session data for safety. If you want to keep
+  some data in the session, we recommend you to manually copy
+  the data you want to maintain.
+  """
+  def logout_user(conn) do
+    user_token = get_session(conn, :user_token)
+    user_token && Accounts.delete_signed_token(user_token, "session")
+
+    conn
+    |> clear_session()
+    |> configure_session(renew: true)
+    |> redirect(to: "/")
   end
 
   @doc """
@@ -24,8 +42,8 @@ defmodule DemoWeb.UserAuth do
   and remember me token.
   """
   def authenticate_user(conn, _opts) do
-    user_id = get_session(conn, :user_id)
-    user = user_id && Accounts.get_user(user_id)
+    user_token = get_session(conn, :user_token)
+    user = user_token && Accounts.get_user_by_signed_token(user_token, "session")
     assign(conn, :current_user, user)
   end
 

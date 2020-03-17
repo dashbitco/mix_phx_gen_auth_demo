@@ -37,7 +37,7 @@ defmodule DemoWeb.UserConfirmationController do
       :error ->
         conn
         |> put_flash(:error, "Confirmation token is invalid or it has expired.")
-        |> redirect(to: Routes.user_confirmation_path(conn, :new))
+        |> redirect(to: "/")
     end
   end
 end

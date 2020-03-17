@@ -7,20 +7,6 @@ defmodule Demo.Accounts do
   alias Demo.Accounts.{User, UserToken, UserNotifier}
 
   @doc """
-  Gets a single user.
-
-  ## Examples
-
-      iex> get_user(123)
-      %User{}
-
-      iex> get_user(456)
-      nil
-
-  """
-  def get_user(id), do: Repo.get(User, id)
-
-  @doc """
   Gets a user by email.
 
   ## Examples
@@ -102,6 +88,31 @@ defmodule Demo.Accounts do
   end
 
   @doc """
+  Generates a session/cookie token.
+  """
+  def generate_to_be_signed_token(user, context) do
+    {token, user_token} = UserToken.build_to_be_signed_token(user, context)
+    Repo.insert!(user_token)
+    token
+  end
+
+  @doc """
+  Gets the user with the given signed token.
+  """
+  def get_user_by_signed_token(token, context) do
+    {:ok, query} = UserToken.verify_to_be_signed_token_query(token, context)
+    Repo.one(query)
+  end
+
+  @doc """
+  Deletes the signed token with the given context.
+  """
+  def delete_signed_token(token, context) do
+    Repo.delete_all(UserToken.token_and_context_query(token, context))
+    :ok
+  end
+
+  @doc """
   Delivers the confirmation e-mail instructions to the given user.
 
   ## Examples
@@ -118,7 +129,7 @@ defmodule Demo.Accounts do
     if user.confirmed_at do
       {:error, :already_confirmed}
     else
-      {encoded_token, user_token} = UserToken.confirmation_token(user)
+      {encoded_token, user_token} = UserToken.build_user_email_token(user, "confirm")
       Repo.insert!(user_token)
       UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
       :ok
@@ -132,18 +143,18 @@ defmodule Demo.Accounts do
   and the token is deleted.
   """
   def confirm_user(token) do
-    with {:ok, query} <- UserToken.confirmation_query(token),
-         {token, user} <- Repo.one(query),
-         {:ok, _} <- Repo.transaction(confirmation_multi(user, token)) do
+    with {:ok, query} <- UserToken.verify_user_email_token_query(token, "confirm"),
+         %User{} = user <- Repo.one(query),
+         {:ok, _} <- Repo.transaction(confirmation_multi(user)) do
       :ok
     else
       _ -> :error
     end
   end
 
-  defp confirmation_multi(user, token) do
+  defp confirmation_multi(user) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.confirm_changeset(user))
-    |> Ecto.Multi.delete(:user_token, token)
+    |> Ecto.Multi.delete_all(:user_tokens, UserToken.delete_all_tokens_query(user, "confirm"))
   end
 end

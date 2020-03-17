@@ -22,8 +22,6 @@ defmodule DemoWeb.UserSessionController do
   def delete(conn, _params) do
     conn
     |> put_flash(:info, "Logged out successfully.")
-    |> clear_session()
-    |> configure_session(renew: true)
-    |> redirect(to: "/")
+    |> UserAuth.logout_user()
   end
 end

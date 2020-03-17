@@ -7,7 +7,6 @@ defmodule Demo.Accounts.User do
     field :password, :string, virtual: true
     field :encrypted_password, :string
     field :confirmed_at, :naive_datetime
-    has_many :tokens, Demo.Accounts.UserToken, foreign_key: :user_id
 
     timestamps()
   end
@@ -28,8 +27,8 @@ defmodule Demo.Accounts.User do
     |> validate_length(:email, max: 160)
     |> validate_length(:password, min: 12, max: 80)
     |> unsafe_validate_unique(:email, Demo.Repo)
-    |> maybe_encrypt_password()
     |> unique_constraint(:email)
+    |> maybe_encrypt_password()
   end
 
   defp maybe_encrypt_password(changeset) do
@@ -55,7 +54,7 @@ defmodule Demo.Accounts.User do
     Bcrypt.verify_pass(password, encrypted_password)
   end
 
-  def valid_password?(_) do
+  def valid_password?(_, _) do
     Bcrypt.hash_pwd_salt("unused hash to avoid timing attacks")
     false
   end

@@ -1,6 +1,6 @@
 <h1>Login</h1>
 
-<%= form_for :user, Routes.user_session_path(@conn, :create), fn f -> %>
+<%= form_for @conn, Routes.user_session_path(@conn, :create), [as: :user], fn f -> %>
   <%= if @error_message do %>
     <div class="alert alert-danger">
       <p><%= @error_message %></p>
