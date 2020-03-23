@@ -2,7 +2,6 @@ defmodule DemoWeb.UserResetPasswordController do
   use DemoWeb, :controller
 
   alias Demo.Accounts
-  alias Demo.Accounts.User
 
   plug :get_user_by_reset_password_token when action in [:edit, :update]
 
@@ -28,14 +27,14 @@ defmodule DemoWeb.UserResetPasswordController do
   end
 
   def edit(conn, _params) do
-    render(conn, "edit.html", changeset: Accounts.change_user_reset_password(%User{}))
+    render(conn, "edit.html", changeset: Accounts.change_user_reset_password(conn.assigns.user))
   end
 
   # Do not login the user after reset password to avoid a
   # leaked token giving the user access to the account.
   def update(conn, %{"user" => user_params}) do
     case Accounts.reset_password_user(conn.assigns.user, user_params) do
-      {:ok, user} ->
+      {:ok, _} ->
         conn
         |> put_flash(:info, "Password reset successfully.")
         |> redirect(to: Routes.user_session_path(conn, :new))
@@ -45,7 +44,7 @@ defmodule DemoWeb.UserResetPasswordController do
     end
   end
 
-  defp get_user_by_reset_password_token(conn, _) do
+  defp get_user_by_reset_password_token(conn, _opts) do
     %{"token" => token} = conn.params
 
     if user = Accounts.get_user_by_reset_password_token(token) do

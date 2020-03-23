@@ -5,7 +5,6 @@ defmodule Demo.Accounts.User do
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true
-    field :password_confirmation, :string, virtual: true
     field :encrypted_password, :string
     field :confirmed_at, :naive_datetime
 
@@ -24,11 +23,8 @@ defmodule Demo.Accounts.User do
     user
     |> cast(attrs, [:email, :password])
     |> validate_required([:email, :password])
-    |> validate_format(:email, "@")
-    |> validate_length(:email, max: 160)
+    |> validate_email()
     |> validate_password()
-    |> unsafe_validate_unique(:email, Demo.Repo)
-    |> unique_constraint(:email)
     |> maybe_encrypt_password()
   end
 
@@ -42,14 +38,65 @@ defmodule Demo.Accounts.User do
     end
   end
 
+  defp validate_email(changeset) do
+    changeset
+    |> validate_format(:email, "@")
+    |> validate_length(:email, max: 160)
+    |> unsafe_validate_unique(:email, Demo.Repo)
+    |> unique_constraint(:email)
+  end
+
   defp validate_password(changeset) do
     validate_length(changeset, :password, min: 12, max: 80)
   end
 
   @doc """
+  A user changeset for changing the e-mail.
+
+  It requires the e-mail to change otherwise an error is added.
+  """
+  def email_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email])
+    |> validate_email()
+    |> case do
+      %{changes: %{email: _}} = changeset -> changeset
+      %{} = changeset -> add_error(changeset, :email, "did not change")
+    end
+  end
+
+  @doc """
+  A user changeset for changing the password.
+  """
+  def password_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:password])
+    |> validate_password()
+  end
+
+  @doc """
+  Confirms the account by setting `confirmed_at`.
+  """
+  def confirm_changeset(user) do
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+    change(user, confirmed_at: now)
+  end
+
+  @doc """
+  A user changeset for resetting password.
+  """
+  def reset_password_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:password])
+    |> validate_required([:password])
+    |> validate_password()
+    |> validate_confirmation(:password)
+  end
+
+  @doc """
   Verifies the password.
 
-  Returns the given user if valid, 
+  Returns the given user if valid,
 
   If there is no user or the user doesn't have a password,
   we encrypt a blank password to avoid timing attacks.
@@ -65,21 +112,13 @@ defmodule Demo.Accounts.User do
   end
 
   @doc """
-  Confirms the account by setting `confirmed_at`.
+  Validates the current password otherwise adds an error to the changeset.
   """
-  def confirm_changeset(user) do
-    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-    change(user, confirmed_at: now)
-  end
-
-  @doc """
-  Reset password changeset.
-  """
-  def reset_password_changeset(user, attrs) do
-    user
-    |> cast(attrs, [:password, :password_confirmation])
-    |> validate_required([:password, :password_confirmation])
-    |> validate_password()
-    |> validate_confirmation(:password)
+  def validate_current_password(changeset, password) do
+    if valid_password?(changeset.data, password) do
+      changeset
+    else
+      add_error(changeset, :current_password, "is not valid")
+    end
   end
 end

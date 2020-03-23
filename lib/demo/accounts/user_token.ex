@@ -88,6 +88,27 @@ defmodule Demo.Accounts.UserToken do
   end
 
   @doc """
+  Checks if the token is valid and returns its underlying lookup query.
+
+  The query returns the user found by the token.
+  """
+  def verify_user_change_email_token_query(token, context) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+
+        query =
+          from token in token_and_context_query(hashed_token, context),
+            where: token.inserted_at > ago(1, "week")
+
+        {:ok, query}
+
+      :error ->
+        :error
+    end
+  end
+
+  @doc """
   Returns the given token with the given context.
   """
   def token_and_context_query(token, context) do
@@ -95,9 +116,13 @@ defmodule Demo.Accounts.UserToken do
   end
 
   @doc """
-  A query that deletes all tokens for user in the given context.
+  Gets all tokens for the given user for the given contexts.
   """
-  def delete_all_tokens_query(user, [_ | _] = contexts) do
+  def user_and_contexts_query(user, :all) do
+    from t in Demo.Accounts.UserToken, where: t.user_id == ^user.id
+  end
+
+  def user_and_contexts_query(user, [_ | _] = contexts) do
     from t in Demo.Accounts.UserToken, where: t.user_id == ^user.id and t.context in ^contexts
   end
 end

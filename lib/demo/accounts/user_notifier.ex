@@ -45,4 +45,24 @@ defmodule Demo.Accounts.UserNotifier do
     ==============================
     """
   end
+
+  @doc """
+  Deliver instructions to update your e-mail.
+  """
+  def deliver_update_email_instructions(user, url) do
+    IO.puts """
+
+    ==============================
+
+    Hi #{user.email},
+
+    You can change your e-mail by visiting the url below:
+
+    #{url}
+
+    If you didn't request this change, please ignore this.
+
+    ==============================
+    """
+  end
 end

@@ -91,6 +91,87 @@ defmodule Demo.Accounts do
     User.registration_changeset(user, attrs)
   end
 
+  ## Settings
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user e-mail.
+
+  ## Examples
+
+      iex> change_user_email(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_email(user, attrs \\ %{}) do
+    User.email_changeset(user, attrs)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user password.
+
+  ## Examples
+
+      iex> change_user_password(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_password(user, attrs \\ %{}) do
+    User.password_changeset(user, attrs)
+  end
+
+  @doc """
+  Emulates that the e-mail will change without actually changing
+  it in the database.
+  """
+  def apply_user_email(user, password, attrs) do
+    user
+    |> User.email_changeset(attrs)
+    |> User.validate_current_password(password)
+    |> Ecto.Changeset.apply_action(:update)
+  end
+
+  @doc """
+  Updates the user e-mail in token.
+
+  If the token matches, the user email is updated and the token is deleted.
+  """
+  def update_user_email(user, token) do
+    context = "change:#{user.email}"
+
+    with {:ok, query} <- UserToken.verify_user_change_email_token_query(token, context),
+         %UserToken{sent_to: email} <- Repo.one(query),
+         {:ok, _} <- Repo.transaction(user_email_multi(user, email, context)) do
+      :ok
+    else
+      _ -> :error
+    end
+  end
+
+  defp user_email_multi(user, email, context) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:user, User.email_changeset(user, %{email: email}))
+    |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, [context]))
+  end
+
+  @doc """
+  Delivers the update e-mail instructions to the given user.
+
+  ## Examples
+
+      iex> deliver_update_email_instructions(user, current_email, &Routes.user_update_email_url(conn, :edit))
+      :ok
+
+  """
+  def deliver_update_email_instructions(%User{} = user, current_email, update_email_url_fun)
+      when is_function(update_email_url_fun, 1) do
+    {encoded_token, user_token} =
+      UserToken.build_user_email_token(user, "change:#{current_email}")
+
+    Repo.insert!(user_token)
+    UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+    :ok
+  end
+
   ## Session/Remember me
 
   @doc """
@@ -163,7 +244,7 @@ defmodule Demo.Accounts do
   defp confirm_user_multi(user) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.confirm_changeset(user))
-    |> Ecto.Multi.delete_all(:confirm, UserToken.delete_all_tokens_query(user, ["confirm"]))
+    |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, ["confirm"]))
   end
 
   ## Reset passwword
@@ -219,8 +300,6 @@ defmodule Demo.Accounts do
     User.reset_password_changeset(user, %{})
   end
 
-  @to_delete_on_reset ~w(reset_password session remember_me)
-
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking user reset password.
 
@@ -237,7 +316,7 @@ defmodule Demo.Accounts do
   def reset_password_user(user, attrs \\ %{}) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.reset_password_changeset(user, attrs))
-    |> Ecto.Multi.delete_all(:tokens, UserToken.delete_all_tokens_query(user, @to_delete_on_reset))
+    |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, :all))
     |> Repo.transaction()
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
