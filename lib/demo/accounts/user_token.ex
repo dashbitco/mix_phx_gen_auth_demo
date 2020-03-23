@@ -97,7 +97,7 @@ defmodule Demo.Accounts.UserToken do
   @doc """
   A query that deletes all tokens for user in the given context.
   """
-  def delete_all_tokens_query(user, context) do
-    from Demo.Accounts.UserToken, where: [user_id: ^user.id, context: ^context]
+  def delete_all_tokens_query(user, [_ | _] = contexts) do
+    from t in Demo.Accounts.UserToken, where: t.user_id == ^user.id and t.context in ^contexts
   end
 end

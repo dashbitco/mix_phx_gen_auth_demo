@@ -19,3 +19,8 @@
     <%= submit "Register" %>
   </div>
 <% end %>
+
+<p>
+  <%= link "Login", to: Routes.user_session_path(@conn, :new) %> |
+  <%= link "Forgot your password?", to: Routes.user_reset_password_path(@conn, :new) %>
+</p>

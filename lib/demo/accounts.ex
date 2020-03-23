@@ -6,6 +6,8 @@ defmodule Demo.Accounts do
   alias Demo.Repo
   alias Demo.Accounts.{User, UserToken, UserNotifier}
 
+  ## Database getters
+
   @doc """
   Gets a user by email.
 
@@ -56,6 +58,8 @@ defmodule Demo.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  ## User registration
+
   @doc """
   Registers a user.
 
@@ -79,13 +83,15 @@ defmodule Demo.Accounts do
 
   ## Examples
 
-      iex> change_user(user)
+      iex> change_user_registration(user)
       %Ecto.Changeset{data: %User{}}
 
   """
-  def registration_user(%User{} = user, attrs \\ %{}) do
+  def change_user_registration(%User{} = user, attrs \\ %{}) do
     User.registration_changeset(user, attrs)
   end
+
+  ## Session/Remember me
 
   @doc """
   Generates a session/cookie token.
@@ -111,6 +117,8 @@ defmodule Demo.Accounts do
     Repo.delete_all(UserToken.token_and_context_query(token, context))
     :ok
   end
+
+  ## Confirmation
 
   @doc """
   Delivers the confirmation e-mail instructions to the given user.
@@ -145,16 +153,95 @@ defmodule Demo.Accounts do
   def confirm_user(token) do
     with {:ok, query} <- UserToken.verify_user_email_token_query(token, "confirm"),
          %User{} = user <- Repo.one(query),
-         {:ok, _} <- Repo.transaction(confirmation_multi(user)) do
+         {:ok, _} <- Repo.transaction(confirm_user_multi(user)) do
       :ok
     else
       _ -> :error
     end
   end
 
-  defp confirmation_multi(user) do
+  defp confirm_user_multi(user) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.confirm_changeset(user))
-    |> Ecto.Multi.delete_all(:user_tokens, UserToken.delete_all_tokens_query(user, "confirm"))
+    |> Ecto.Multi.delete_all(:confirm, UserToken.delete_all_tokens_query(user, ["confirm"]))
+  end
+
+  ## Reset passwword
+
+  @doc """
+  Delivers the reset password e-mail to the given user.
+
+  ## Examples
+
+      iex> deliver_reset_password_instructions(user, &Routes.user_reset_password_url(conn, :edit))
+      :ok
+
+  """
+  def deliver_reset_password_instructions(%User{} = user, reset_password_url_fun)
+      when is_function(reset_password_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_user_email_token(user, "reset_password")
+    Repo.insert!(user_token)
+    UserNotifier.deliver_reset_password_instructions(user, reset_password_url_fun.(encoded_token))
+    :ok
+  end
+
+  @doc """
+  Gets the user by reset password token.
+
+  ## Examples
+
+      iex> get_user_by_reset_password_token("validtoken-sadsadsa")
+      %User{}
+
+      iex> get_user_by_reset_password_token("invalidtoken-sadsadsa")
+      nil
+
+  """
+  def get_user_by_reset_password_token(token) do
+    with {:ok, query} <- UserToken.verify_user_email_token_query(token, "reset_password"),
+         %User{} = user <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking user reset password.
+
+  ## Examples
+
+      iex> change_user_reset_password(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_reset_password(user) do
+    User.reset_password_changeset(user, %{})
+  end
+
+  @to_delete_on_reset ~w(reset_password session remember_me)
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking user reset password.
+
+  ## Examples
+
+
+      iex> reset_password_user(user, %{password: "new long password", password_confirmation: "new long password"})
+      {:ok, %User{}}
+
+      iex> reset_password_user(user, %{password: "valid", password_confirmation: "not the same"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def reset_password_user(user, attrs \\ %{}) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:user, User.reset_password_changeset(user, attrs))
+    |> Ecto.Multi.delete_all(:tokens, UserToken.delete_all_tokens_query(user, @to_delete_on_reset))
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{user: user}} -> {:ok, user}
+      {:error, :user, changeset, _} -> {:error, changeset}
+    end
   end
 end

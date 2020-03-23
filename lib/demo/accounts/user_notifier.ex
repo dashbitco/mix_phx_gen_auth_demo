@@ -5,6 +5,10 @@ defmodule Demo.Accounts.UserNotifier do
   #   * Swoosh - https://github.com/swoosh/swoosh
   #   * Bamboo - https://github.com/thoughtbot/bamboo
   #
+
+  @doc """
+  Deliver instructions to confirm account.
+  """
   def deliver_confirmation_instructions(user, url) do
     IO.puts """
 
@@ -17,6 +21,26 @@ defmodule Demo.Accounts.UserNotifier do
     #{url}
 
     If you didn't create an account with us, please ignore this.
+
+    ==============================
+    """
+  end
+
+  @doc """
+  Deliver instructions to reset password account.
+  """
+  def deliver_reset_password_instructions(user, url) do
+    IO.puts """
+
+    ==============================
+
+    Hi #{user.email},
+
+    You can reset your password by visiting the url below:
+
+    #{url}
+
+    If you didn't request this change, please ignore this.
 
     ==============================
     """

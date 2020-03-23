@@ -37,6 +37,10 @@ defmodule DemoWeb.Router do
     post "/users/register", UserRegistrationController, :create
     get "/users/login", UserSessionController, :new
     post "/users/login", UserSessionController, :create
+    get "/users/reset_password", UserResetPasswordController, :new
+    post "/users/reset_password", UserResetPasswordController, :create
+    get "/users/reset_password/:token", UserResetPasswordController, :edit
+    put "/users/reset_password/:token", UserResetPasswordController, :update
   end
 
   scope "/", DemoWeb do
@@ -48,7 +52,7 @@ defmodule DemoWeb.Router do
   scope "/", DemoWeb do
     pipe_through [:browser]
 
-    get "/users/confirm/new", UserConfirmationController, :new
+    get "/users/confirm", UserConfirmationController, :new
     post "/users/confirm", UserConfirmationController, :create
     get "/users/confirm/:token", UserConfirmationController, :confirm
   end

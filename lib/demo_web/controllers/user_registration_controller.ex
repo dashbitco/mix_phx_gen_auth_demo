@@ -6,7 +6,7 @@ defmodule DemoWeb.UserRegistrationController do
   alias DemoWeb.UserAuth
 
   def new(conn, _params) do
-    changeset = Accounts.registration_user(%User{})
+    changeset = Accounts.change_user_registration(%User{})
     render(conn, "new.html", changeset: changeset)
   end
 

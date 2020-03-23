@@ -1,11 +1,11 @@
-<h1>Resend confirmation instructions</h1>
+<h1>Forgot your password?</h1>
 
-<%= form_for :user, Routes.user_confirmation_path(@conn, :create), fn f -> %>
+<%= form_for :user, Routes.user_reset_password_path(@conn, :create), fn f -> %>
   <%= label f, :email %>
   <%= text_input f, :email, required: true %>
 
   <div>
-    <%= submit "Resend confirmation instructions" %>
+    <%= submit "Send instructions to reset password" %>
   </div>
 <% end %>
 

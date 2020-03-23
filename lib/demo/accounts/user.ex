@@ -5,6 +5,7 @@ defmodule Demo.Accounts.User do
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true
+    field :password_confirmation, :string, virtual: true
     field :encrypted_password, :string
     field :confirmed_at, :naive_datetime
 
@@ -25,7 +26,7 @@ defmodule Demo.Accounts.User do
     |> validate_required([:email, :password])
     |> validate_format(:email, "@")
     |> validate_length(:email, max: 160)
-    |> validate_length(:password, min: 12, max: 80)
+    |> validate_password()
     |> unsafe_validate_unique(:email, Demo.Repo)
     |> unique_constraint(:email)
     |> maybe_encrypt_password()
@@ -39,6 +40,10 @@ defmodule Demo.Accounts.User do
     else
       changeset
     end
+  end
+
+  defp validate_password(changeset) do
+    validate_length(changeset, :password, min: 12, max: 80)
   end
 
   @doc """
@@ -65,5 +70,16 @@ defmodule Demo.Accounts.User do
   def confirm_changeset(user) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     change(user, confirmed_at: now)
+  end
+
+  @doc """
+  Reset password changeset.
+  """
+  def reset_password_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:password, :password_confirmation])
+    |> validate_required([:password, :password_confirmation])
+    |> validate_password()
+    |> validate_confirmation(:password)
   end
 end
