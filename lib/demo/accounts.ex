@@ -107,21 +107,17 @@ defmodule Demo.Accounts do
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for changing the user password.
+  Emulates that the e-mail will change without actually changing
+  it in the database.
 
   ## Examples
 
-      iex> change_user_password(user)
-      %Ecto.Changeset{data: %User{}}
+      iex> apply_user_email(user, "valid password", %{email: ...})
+      {:ok, %User{}}
 
-  """
-  def change_user_password(user, attrs \\ %{}) do
-    User.password_changeset(user, attrs)
-  end
+      iex> apply_user_email(user, "invalid password", %{email: ...})
+      {:error, %Ecto.Changeset{}}
 
-  @doc """
-  Emulates that the e-mail will change without actually changing
-  it in the database.
   """
   def apply_user_email(user, password, attrs) do
     user
@@ -170,6 +166,38 @@ defmodule Demo.Accounts do
     Repo.insert!(user_token)
     UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
     :ok
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user password.
+
+  ## Examples
+
+      iex> change_user_password(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_password(user, attrs \\ %{}) do
+    User.password_changeset(user, attrs)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user password.
+
+  ## Examples
+
+      iex> update_user_password(user, "valid password", %{password: ...})
+      {:ok, %User{}}
+
+      iex> update_user_password(user, "invalid password", %{password: ...})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_password(user, password, attrs \\ %{}) do
+    user
+    |> User.password_changeset(attrs)
+    |> User.validate_current_password(password)
+    |> Repo.update()
   end
 
   ## Session/Remember me
@@ -292,30 +320,17 @@ defmodule Demo.Accounts do
 
   ## Examples
 
-      iex> change_user_reset_password(user)
-      %Ecto.Changeset{data: %User{}}
 
-  """
-  def change_user_reset_password(user) do
-    User.reset_password_changeset(user, %{})
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking user reset password.
-
-  ## Examples
-
-
-      iex> reset_password_user(user, %{password: "new long password", password_confirmation: "new long password"})
+      iex> reset_user_password(user, %{password: "new long password", password_confirmation: "new long password"})
       {:ok, %User{}}
 
-      iex> reset_password_user(user, %{password: "valid", password_confirmation: "not the same"})
+      iex> reset_user_password(user, %{password: "valid", password_confirmation: "not the same"})
       {:error, %Ecto.Changeset{}}
 
   """
-  def reset_password_user(user, attrs \\ %{}) do
+  def reset_user_password(user, attrs \\ %{}) do
     Ecto.Multi.new()
-    |> Ecto.Multi.update(:user, User.reset_password_changeset(user, attrs))
+    |> Ecto.Multi.update(:user, User.password_changeset(user, attrs))
     |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, :all))
     |> Repo.transaction()
     |> case do

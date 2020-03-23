@@ -12,7 +12,7 @@ defmodule DemoWeb.UserSettingsController do
   def update_email(conn, %{"current_password" => password, "user" => user_params}) do
     user = conn.assigns.current_user
 
-    case Accounts.validate_user_email(user, password, user_params) do
+    case Accounts.apply_user_email(user, password, user_params) do
       {:ok, applied_user} ->
         Accounts.deliver_update_email_instructions(
           applied_user,
@@ -43,6 +43,20 @@ defmodule DemoWeb.UserSettingsController do
         conn
         |> put_flash(:error, "Email change token is invalid or it has expired.")
         |> redirect(to: Routes.user_settings_path(conn, :edit))
+    end
+  end
+
+  def update_password(conn, %{"current_password" => password, "user" => user_params}) do
+    user = conn.assigns.current_user
+
+    case Accounts.update_user_password(user, password, user_params) do
+      {:ok, _} ->
+        conn
+        |> put_flash(:info, "Password updated successfully.")
+        |> redirect(to: Routes.user_settings_path(conn, :edit))
+
+      {:error, changeset} ->
+        render(conn, "edit.html", password_changeset: changeset)
     end
   end
 

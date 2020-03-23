@@ -22,9 +22,23 @@ defmodule Demo.Accounts.User do
   def registration_changeset(user, attrs) do
     user
     |> cast(attrs, [:email, :password])
-    |> validate_required([:email, :password])
     |> validate_email()
     |> validate_password()
+  end
+
+  defp validate_email(changeset) do
+    changeset
+    |> validate_required([:email])
+    |> validate_format(:email, "@")
+    |> validate_length(:email, max: 160)
+    |> unsafe_validate_unique(:email, Demo.Repo)
+    |> unique_constraint(:email)
+  end
+
+  defp validate_password(changeset) do
+    changeset
+    |> validate_required([:password])
+    |> validate_length(:password, min: 12, max: 80)
     |> maybe_encrypt_password()
   end
 
@@ -36,18 +50,6 @@ defmodule Demo.Accounts.User do
     else
       changeset
     end
-  end
-
-  defp validate_email(changeset) do
-    changeset
-    |> validate_format(:email, "@")
-    |> validate_length(:email, max: 160)
-    |> unsafe_validate_unique(:email, Demo.Repo)
-    |> unique_constraint(:email)
-  end
-
-  defp validate_password(changeset) do
-    validate_length(changeset, :password, min: 12, max: 80)
   end
 
   @doc """
@@ -71,6 +73,7 @@ defmodule Demo.Accounts.User do
   def password_changeset(user, attrs) do
     user
     |> cast(attrs, [:password])
+    |> validate_confirmation(:password)
     |> validate_password()
   end
 
@@ -80,17 +83,6 @@ defmodule Demo.Accounts.User do
   def confirm_changeset(user) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     change(user, confirmed_at: now)
-  end
-
-  @doc """
-  A user changeset for resetting password.
-  """
-  def reset_password_changeset(user, attrs) do
-    user
-    |> cast(attrs, [:password])
-    |> validate_required([:password])
-    |> validate_password()
-    |> validate_confirmation(:password)
   end
 
   @doc """
