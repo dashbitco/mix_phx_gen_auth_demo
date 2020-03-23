@@ -3,6 +3,7 @@ defmodule DemoWeb.UserAuth do
   import Phoenix.Controller
 
   alias Demo.Accounts
+  alias DemoWeb.Router.Helpers, as: Routes
 
   @doc """
   Logs the user in.
@@ -14,10 +15,13 @@ defmodule DemoWeb.UserAuth do
     Plug.CSRFProtection.delete_csrf_token()
     token = Accounts.generate_to_be_signed_token(user, "session")
 
+    user_return_to = get_session(conn, :user_return_to)
+    delete_session(conn, :user_return_to)
+
     conn
     |> put_session(:user_token, token)
     |> configure_session(renew: true)
-    |> redirect(to: signed_in_path(conn))
+    |> redirect(to: user_return_to || signed_in_path(conn))
   end
 
   @doc """
@@ -71,7 +75,9 @@ defmodule DemoWeb.UserAuth do
       conn
     else
       conn
-      |> redirect(to: signed_in_path(conn))
+      |> put_flash(:error, "You must be authenticated to access this page.")
+      |> put_session(:user_return_to, conn.request_path)
+      |> redirect(to: Routes.user_session_path(conn, :new))
       |> halt()
     end
   end

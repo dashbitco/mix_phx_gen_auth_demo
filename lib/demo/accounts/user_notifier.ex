@@ -10,7 +10,7 @@ defmodule Demo.Accounts.UserNotifier do
   Deliver instructions to confirm account.
   """
   def deliver_confirmation_instructions(user, url) do
-    IO.puts """
+    IO.puts("""
 
     ==============================
 
@@ -23,14 +23,14 @@ defmodule Demo.Accounts.UserNotifier do
     If you didn't create an account with us, please ignore this.
 
     ==============================
-    """
+    """)
   end
 
   @doc """
   Deliver instructions to reset password account.
   """
   def deliver_reset_password_instructions(user, url) do
-    IO.puts """
+    IO.puts("""
 
     ==============================
 
@@ -43,14 +43,14 @@ defmodule Demo.Accounts.UserNotifier do
     If you didn't request this change, please ignore this.
 
     ==============================
-    """
+    """)
   end
 
   @doc """
   Deliver instructions to update your e-mail.
   """
   def deliver_update_email_instructions(user, url) do
-    IO.puts """
+    IO.puts("""
 
     ==============================
 
@@ -63,6 +63,6 @@ defmodule Demo.Accounts.UserNotifier do
     If you didn't request this change, please ignore this.
 
     ==============================
-    """
+    """)
   end
 end
