@@ -18,9 +18,6 @@ defmodule DemoWeb.UserSessionController do
     end
   end
 
-  # On logout we clear all session data for safety.
-  # If you want to keep some data in the session, you can
-  # explicitly delete the user_id, but do so carefully.
   def delete(conn, _params) do
     conn
     |> put_flash(:info, "Logged out successfully.")

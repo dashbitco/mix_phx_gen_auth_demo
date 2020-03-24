@@ -9,7 +9,6 @@ defmodule DemoWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    # NOTE: we may have to ask the user to do this one manually :/
     plug :authenticate_user
   end
 
