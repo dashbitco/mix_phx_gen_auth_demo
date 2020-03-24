@@ -29,7 +29,7 @@ defmodule Demo.Accounts.User do
   defp validate_email(changeset) do
     changeset
     |> validate_required([:email])
-    |> validate_format(:email, "@")
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
     |> unsafe_validate_unique(:email, Demo.Repo)
     |> unique_constraint(:email)
@@ -94,7 +94,7 @@ defmodule Demo.Accounts.User do
   we encrypt a blank password to avoid timing attacks.
   """
   def valid_password?(%Demo.Accounts.User{encrypted_password: encrypted_password}, password)
-      when is_binary(encrypted_password) do
+      when is_binary(encrypted_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, encrypted_password)
   end
 
