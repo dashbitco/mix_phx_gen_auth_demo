@@ -5,15 +5,21 @@ defmodule DemoWeb.UserAuth do
   alias Demo.Accounts
   alias DemoWeb.Router.Helpers, as: Routes
 
+  # Make the remember me cookie valid for 60 days.
+  # If you want bump or reduce this value, also change
+  # the token expiry itself in UserToken.
+  @max_age 60 * 60 * 24 * 60
+  @remember_me_cookie "user_remember_me"
+
   @doc """
   Logs the user in.
 
   It deletes the CSRF token and renews the session
   to avoid fixation attacks.
   """
-  def login_user(conn, user) do
+  def login_user(conn, user, params \\ %{}) do
     Plug.CSRFProtection.delete_csrf_token()
-    token = Accounts.generate_to_be_signed_token(user, "session")
+    token = Accounts.generate_session_token(user)
 
     user_return_to = get_session(conn, :user_return_to)
     delete_session(conn, :user_return_to)
@@ -21,7 +27,16 @@ defmodule DemoWeb.UserAuth do
     conn
     |> put_session(:user_token, token)
     |> configure_session(renew: true)
+    |> maybe_write_remember_me_cookie(token, params)
     |> redirect(to: user_return_to || signed_in_path(conn))
+  end
+
+  defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
+    put_resp_cookie(conn, @remember_me_cookie, token, sign: true, max_age: @max_age)
+  end
+
+  defp maybe_write_remember_me_cookie(conn, _token, _params) do
+    conn
   end
 
   @doc """
@@ -33,11 +48,12 @@ defmodule DemoWeb.UserAuth do
   """
   def logout_user(conn) do
     user_token = get_session(conn, :user_token)
-    user_token && Accounts.delete_signed_token(user_token, "session")
+    user_token && Accounts.delete_session_token(user_token)
 
     conn
     |> clear_session()
     |> configure_session(renew: true)
+    |> delete_resp_cookie(@remember_me_cookie)
     |> redirect(to: "/")
   end
 
@@ -46,9 +62,23 @@ defmodule DemoWeb.UserAuth do
   and remember me token.
   """
   def authenticate_user(conn, _opts) do
-    user_token = get_session(conn, :user_token)
-    user = user_token && Accounts.get_user_by_signed_token(user_token, "session")
+    {user_token, conn} = ensure_user_token(conn)
+    user = user_token && Accounts.get_user_by_session_token(user_token)
     assign(conn, :current_user, user)
+  end
+
+  defp ensure_user_token(conn) do
+    if user_token = get_session(conn, :user_token) do
+      {user_token, conn}
+    else
+      conn = fetch_cookies(conn, signed: [@remember_me_cookie])
+
+      if user_token = conn.req_cookies[@remember_me_cookie] do
+        {user_token, put_session(conn, :user_token, user_token)}
+      else
+        {nil, conn}
+      end
+    end
   end
 
   @doc """

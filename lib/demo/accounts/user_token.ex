@@ -19,9 +19,9 @@ defmodule Demo.Accounts.UserToken do
   such as session or cookie. As they are signed, those
   tokens do not need to be hashed.
   """
-  def build_to_be_signed_token(user, context) do
+  def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size)
-    {token, %Demo.Accounts.UserToken{token: token, context: context, user_id: user.id}}
+    {token, %Demo.Accounts.UserToken{token: token, context: "session", user_id: user.id}}
   end
 
   @doc """
@@ -29,11 +29,11 @@ defmodule Demo.Accounts.UserToken do
 
   The query returns the user found by the token.
   """
-  def verify_to_be_signed_token_query(token, context) do
+  def verify_session_token_query(token) do
     query =
-      from token in token_and_context_query(token, context),
+      from token in token_and_context_query(token, "session"),
         join: user in assoc(token, :user),
-        where: token.inserted_at > ago(1, "month"),
+        where: token.inserted_at > ago(60, "day"),
         select: user
 
     {:ok, query}

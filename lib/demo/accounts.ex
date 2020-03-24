@@ -200,13 +200,13 @@ defmodule Demo.Accounts do
     |> Repo.update()
   end
 
-  ## Session/Remember me
+  ## Session
 
   @doc """
-  Generates a session/cookie token.
+  Generates a session token.
   """
-  def generate_to_be_signed_token(user, context) do
-    {token, user_token} = UserToken.build_to_be_signed_token(user, context)
+  def generate_session_token(user) do
+    {token, user_token} = UserToken.build_session_token(user)
     Repo.insert!(user_token)
     token
   end
@@ -214,16 +214,16 @@ defmodule Demo.Accounts do
   @doc """
   Gets the user with the given signed token.
   """
-  def get_user_by_signed_token(token, context) do
-    {:ok, query} = UserToken.verify_to_be_signed_token_query(token, context)
+  def get_user_by_session_token(token) do
+    {:ok, query} = UserToken.verify_session_token_query(token)
     Repo.one(query)
   end
 
   @doc """
   Deletes the signed token with the given context.
   """
-  def delete_signed_token(token, context) do
-    Repo.delete_all(UserToken.token_and_context_query(token, context))
+  def delete_session_token(token) do
+    Repo.delete_all(UserToken.token_and_context_query(token, "session"))
     :ok
   end
 
