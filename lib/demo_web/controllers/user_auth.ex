@@ -10,49 +10,66 @@ defmodule DemoWeb.UserAuth do
   # the token expiry itself in UserToken.
   @max_age 60 * 60 * 24 * 60
   @remember_me_cookie "user_remember_me"
+  @remember_me_options [sign: true, max_age: @max_age]
 
   @doc """
   Logs the user in.
 
-  It deletes the CSRF token and renews the session
-  to avoid fixation attacks.
+  It renews the session ID and clears the whole session
+  to avoid fixation attacks. See the renew_session
+  function to customize this behaviour.
   """
   def login_user(conn, user, params \\ %{}) do
-    Plug.CSRFProtection.delete_csrf_token()
     token = Accounts.generate_session_token(user)
-
     user_return_to = get_session(conn, :user_return_to)
-    delete_session(conn, :user_return_to)
 
     conn
+    |> renew_session()
     |> put_session(:user_token, token)
-    |> configure_session(renew: true)
     |> maybe_write_remember_me_cookie(token, params)
     |> redirect(to: user_return_to || signed_in_path(conn))
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
-    put_resp_cookie(conn, @remember_me_cookie, token, sign: true, max_age: @max_age)
+    put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
   end
 
   defp maybe_write_remember_me_cookie(conn, _token, _params) do
     conn
   end
 
+  # This function renews the session ID and erases the whole
+  # session to avoid fixation attacks. If there is any data
+  # in the session you may want to preserve after login/logout,
+  # you must explicitly fetch the session data before clearing
+  # and then immediately set it after clearing, for example:
+  #
+  #     def renew_session(conn) do
+  #       preferred_locale = get_session(conn, :preferred_locale)
+  #
+  #       conn
+  #       |> configure_session(renew: true)
+  #       |> clear_session()
+  #       |> put_session(:preferred_locale, preferred_locale)
+  #     end
+  #
+  defp renew_session(conn) do
+    conn
+    |> configure_session(renew: true)
+    |> clear_session()
+  end
+
   @doc """
   Logs the user out.
 
-  It clears all session data for safety. If you want to keep
-  some data in the session, we recommend you to manually copy
-  the data you want to maintain.
+  It clears all session data for safety. See renew_session.
   """
   def logout_user(conn) do
     user_token = get_session(conn, :user_token)
     user_token && Accounts.delete_session_token(user_token)
 
     conn
-    |> clear_session()
-    |> configure_session(renew: true)
+    |> renew_session()
     |> delete_resp_cookie(@remember_me_cookie)
     |> redirect(to: "/")
   end
