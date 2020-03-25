@@ -139,7 +139,7 @@ defmodule Demo.AccountsTest do
       assert %{email: ["must have the @ sign and no spaces"]} = errors_on(changeset)
     end
 
-    test "validates maximum values for e-mail and password for security", %{user: user} do
+    test "validates maximum value for e-mail for security", %{user: user} do
       too_long = String.duplicate("db", 100)
       {:error, changeset} = Accounts.apply_user_email(user, @valid_password, %{email: too_long})
       assert "should be at most 160 character(s)" in errors_on(changeset).email
@@ -222,6 +222,49 @@ defmodule Demo.AccountsTest do
       assert Accounts.update_user_email(user, token) == :error
       assert Repo.get!(User, user.id).email == user.email
       assert Repo.get_by(UserToken, user_id: user.id)
+    end
+  end
+
+  describe "change_user_password/2" do
+    test "returns a user changeset" do
+      assert %Ecto.Changeset{} = changeset = Accounts.change_user_password(%User{})
+      assert changeset.required == [:password]
+    end
+  end
+
+  describe "update_user_password/3" do
+    setup do
+      %{user: user_fixture()}
+    end
+
+    test "validates password", %{user: user} do
+      {:error, changeset} =
+        Accounts.update_user_password(user, @valid_password, %{password: "not valid"})
+
+      assert %{password: ["should be at least 12 character(s)"]} = errors_on(changeset)
+    end
+
+    test "validates maximum values for password for security", %{user: user} do
+      too_long = String.duplicate("db", 100)
+
+      {:error, changeset} =
+        Accounts.update_user_password(user, @valid_password, %{password: too_long})
+
+      assert "should be at most 80 character(s)" in errors_on(changeset).password
+    end
+
+    test "validates current password", %{user: user} do
+      {:error, changeset} =
+        Accounts.update_user_password(user, "invalid", %{password: @valid_password})
+
+      assert %{current_password: ["is not valid"]} = errors_on(changeset)
+    end
+
+    test "updates the password", %{user: user} do
+      {:ok, _} =
+        Accounts.update_user_password(user, @valid_password, %{password: "new valid password"})
+
+      assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
     end
   end
 end
