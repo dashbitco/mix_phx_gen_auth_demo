@@ -14,7 +14,7 @@ defmodule DemoWeb.UserRegistrationController do
     case Accounts.register_user(user_params) do
       {:ok, user} ->
         :ok =
-          Accounts.deliver_confirmation_instructions(
+          Accounts.deliver_user_confirmation_instructions(
             user,
             &Routes.user_confirmation_url(conn, :confirm, &1)
           )

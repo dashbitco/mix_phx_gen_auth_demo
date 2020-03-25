@@ -11,7 +11,7 @@ defmodule DemoWeb.UserResetPasswordController do
 
   def create(conn, %{"user" => %{"email" => email}}) do
     if user = Accounts.get_user_by_email(email) do
-      Accounts.deliver_reset_password_instructions(
+      Accounts.deliver_user_reset_password_instructions(
         user,
         &Routes.user_reset_password_url(conn, :edit, &1)
       )

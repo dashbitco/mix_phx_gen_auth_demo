@@ -9,7 +9,7 @@ defmodule DemoWeb.UserConfirmationController do
 
   def create(conn, %{"user" => %{"email" => email}}) do
     if user = Accounts.get_user_by_email(email) do
-      Accounts.deliver_confirmation_instructions(
+      Accounts.deliver_user_confirmation_instructions(
         user,
         &Routes.user_confirmation_url(conn, :confirm, &1)
       )

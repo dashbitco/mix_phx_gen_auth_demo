@@ -2,6 +2,7 @@ defmodule DemoWeb.UserSettingsController do
   use DemoWeb, :controller
 
   alias Demo.Accounts
+  alias DemoWeb.UserAuth
 
   plug :assign_email_and_password_changesets
 
@@ -50,10 +51,11 @@ defmodule DemoWeb.UserSettingsController do
     user = conn.assigns.current_user
 
     case Accounts.update_user_password(user, password, user_params) do
-      {:ok, _} ->
+      {:ok, user} ->
         conn
         |> put_flash(:info, "Password updated successfully.")
-        |> redirect(to: Routes.user_settings_path(conn, :edit))
+        |> put_session(:user_return_to, Routes.user_settings_path(conn, :edit))
+        |> UserAuth.login_user(user)
 
       {:error, changeset} ->
         render(conn, "edit.html", password_changeset: changeset)

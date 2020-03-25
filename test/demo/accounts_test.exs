@@ -202,6 +202,8 @@ defmodule Demo.AccountsTest do
       changed_user = Repo.get!(User, user.id)
       assert changed_user.email != user.email
       assert changed_user.email == email
+      assert changed_user.confirmed_at
+      assert changed_user.confirmed_at != user.confirmed_at
       refute Repo.get_by(UserToken, user_id: user.id)
     end
 
@@ -308,6 +310,60 @@ defmodule Demo.AccountsTest do
       token = Accounts.generate_session_token(user)
       assert Accounts.delete_session_token(token) == :ok
       refute Accounts.get_user_by_session_token("oops")
+    end
+  end
+
+  describe "deliver_user_confirmation_instructions/3" do
+    setup do
+      %{user: user_fixture()}
+    end
+
+    test "sends token through notification", %{user: user} do
+      token =
+        capture_user_token(fn url ->
+          assert Accounts.deliver_user_confirmation_instructions(user, url) ==
+                   :ok
+        end)
+
+      {:ok, token} = Base.url_decode64(token, padding: false)
+      assert user_token = Repo.get_by(UserToken, token: :crypto.hash(:sha256, token))
+      assert user_token.user_id == user.id
+      assert user_token.sent_to == user.email
+      assert user_token.context == "confirm"
+    end
+  end
+
+  describe "confirm_user/2" do
+    setup do
+      user = user_fixture()
+
+      token =
+        capture_user_token(fn url ->
+          Accounts.deliver_user_confirmation_instructions(user, url)
+        end)
+
+      %{user: user, token: token}
+    end
+
+    test "confirms the e-mail with a valid token", %{user: user, token: token} do
+      assert Accounts.confirm_user(token) == :ok
+      changed_user = Repo.get!(User, user.id)
+      assert changed_user.confirmed_at
+      assert changed_user.confirmed_at != user.confirmed_at
+      refute Repo.get_by(UserToken, user_id: user.id)
+    end
+
+    test "does not confirm with invalid token", %{user: user} do
+      assert Accounts.confirm_user("oops") == :error
+      refute Repo.get!(User, user.id).confirmed_at
+      assert Repo.get_by(UserToken, user_id: user.id)
+    end
+
+    test "does not update e-mail if token expired", %{user: user, token: token} do
+      {1, nil} = Repo.update_all(UserToken, set: [inserted_at: ~N[2020-01-01 00:00:00]])
+      assert Accounts.confirm_user(token) == :error
+      refute Repo.get!(User, user.id).confirmed_at
+      assert Repo.get_by(UserToken, user_id: user.id)
     end
   end
 end
