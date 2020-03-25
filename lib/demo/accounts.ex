@@ -72,7 +72,7 @@ defmodule Demo.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_user(attrs \\ %{}) do
+  def register_user(attrs) do
     %User{}
     |> User.registration_changeset(attrs)
     |> Repo.insert()
@@ -196,7 +196,7 @@ defmodule Demo.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_user_password(user, password, attrs \\ %{}) do
+  def update_user_password(user, password, attrs) do
     changeset =
       user
       |> User.password_changeset(attrs)
@@ -311,10 +311,10 @@ defmodule Demo.Accounts do
 
   ## Examples
 
-      iex> get_user_by_reset_password_token("validtoken-sadsadsa")
+      iex> get_user_by_reset_password_token("validtoken")
       %User{}
 
-      iex> get_user_by_reset_password_token("invalidtoken-sadsadsa")
+      iex> get_user_by_reset_password_token("invalidtoken")
       nil
 
   """
@@ -332,7 +332,6 @@ defmodule Demo.Accounts do
 
   ## Examples
 
-
       iex> reset_user_password(user, %{password: "new long password", password_confirmation: "new long password"})
       {:ok, %User{}}
 
@@ -340,7 +339,7 @@ defmodule Demo.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def reset_user_password(user, attrs \\ %{}) do
+  def reset_user_password(user, attrs) do
     Ecto.Multi.new()
     |> Ecto.Multi.update(:user, User.password_changeset(user, attrs))
     |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, :all))
