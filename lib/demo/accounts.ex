@@ -16,7 +16,7 @@ defmodule Demo.Accounts do
       iex> get_user_by_email("foo@example.com")
       %User{}
 
-      iex> get_user_by_emai("unknown@example.com")
+      iex> get_user_by_email("unknown@example.com")
       nil
 
   """
