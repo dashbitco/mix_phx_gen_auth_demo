@@ -78,7 +78,7 @@ defmodule DemoWeb.UserAuth do
   Authenticates the user by looking into the session
   and remember me token.
   """
-  def authenticate_user(conn, _opts) do
+  def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
     user = user_token && Accounts.get_user_by_session_token(user_token)
     assign(conn, :current_user, user)
@@ -90,7 +90,7 @@ defmodule DemoWeb.UserAuth do
     else
       conn = fetch_cookies(conn, signed: [@remember_me_cookie])
 
-      if user_token = conn.req_cookies[@remember_me_cookie] do
+      if user_token = conn.cookies[@remember_me_cookie] do
         {user_token, put_session(conn, :user_token, user_token)}
       else
         {nil, conn}
@@ -122,7 +122,7 @@ defmodule DemoWeb.UserAuth do
       conn
     else
       conn
-      |> put_flash(:error, "You must be authenticated to access this page.")
+      |> put_flash(:error, "You must login to access this page.")
       |> put_session(:user_return_to, conn.request_path)
       |> redirect(to: Routes.user_session_path(conn, :new))
       |> halt()

@@ -9,7 +9,7 @@ defmodule DemoWeb.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :authenticate_user
+    plug :fetch_current_user
   end
 
   pipeline :api do

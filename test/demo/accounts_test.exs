@@ -1,31 +1,9 @@
 defmodule Demo.AccountsTest do
   use Demo.DataCase
 
+  import Demo.AccountsFixtures
   alias Demo.Accounts
   alias Demo.Accounts.{User, UserToken}
-
-  @valid_password "hello world!"
-
-  def unique_email, do: "user#{System.unique_integer()}@example.com"
-
-  def user_fixture(attrs \\ %{}) do
-    {:ok, user} =
-      %{email: unique_email(), password: @valid_password}
-      |> Map.merge(Map.new(attrs))
-      |> Accounts.register_user()
-
-    user
-  end
-
-  def capture_user_token(fun) do
-    captured =
-      ExUnit.CaptureIO.capture_io(fn ->
-        fun.(&"[TOKEN]#{&1}[TOKEN]")
-      end)
-
-    [_, token, _] = String.split(captured, "[TOKEN]")
-    token
-  end
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -50,7 +28,9 @@ defmodule Demo.AccountsTest do
 
     test "returns the user if the email and password are valid" do
       %{id: id} = user = user_fixture()
-      assert %User{id: ^id} = Accounts.get_user_by_email_and_password(user.email, @valid_password)
+
+      assert %User{id: ^id} =
+               Accounts.get_user_by_email_and_password(user.email, valid_user_password())
     end
   end
 
@@ -100,8 +80,8 @@ defmodule Demo.AccountsTest do
     end
 
     test "registers users with an encrypted password" do
-      email = unique_email()
-      {:ok, user} = Accounts.register_user(%{email: email, password: @valid_password})
+      email = unique_user_email()
+      {:ok, user} = Accounts.register_user(%{email: email, password: valid_user_password()})
       assert user.email == email
       assert is_binary(user.encrypted_password)
       assert is_nil(user.confirmed_at)
@@ -128,37 +108,45 @@ defmodule Demo.AccountsTest do
     end
 
     test "requires email to change", %{user: user} do
-      {:error, changeset} = Accounts.apply_user_email(user, @valid_password, %{})
+      {:error, changeset} = Accounts.apply_user_email(user, valid_user_password(), %{})
       assert %{email: ["did not change"]} = errors_on(changeset)
     end
 
     test "validates email", %{user: user} do
       {:error, changeset} =
-        Accounts.apply_user_email(user, @valid_password, %{email: "not valid"})
+        Accounts.apply_user_email(user, valid_user_password(), %{email: "not valid"})
 
       assert %{email: ["must have the @ sign and no spaces"]} = errors_on(changeset)
     end
 
     test "validates maximum value for e-mail for security", %{user: user} do
       too_long = String.duplicate("db", 100)
-      {:error, changeset} = Accounts.apply_user_email(user, @valid_password, %{email: too_long})
+
+      {:error, changeset} =
+        Accounts.apply_user_email(user, valid_user_password(), %{email: too_long})
+
       assert "should be at most 160 character(s)" in errors_on(changeset).email
     end
 
     test "validates e-mail uniqueness", %{user: user} do
       %{email: email} = user_fixture()
-      {:error, changeset} = Accounts.apply_user_email(user, @valid_password, %{email: email})
+
+      {:error, changeset} =
+        Accounts.apply_user_email(user, valid_user_password(), %{email: email})
+
       assert "has already been taken" in errors_on(changeset).email
     end
 
     test "validates current password", %{user: user} do
-      {:error, changeset} = Accounts.apply_user_email(user, "invalid", %{email: unique_email()})
+      {:error, changeset} =
+        Accounts.apply_user_email(user, "invalid", %{email: unique_user_email()})
+
       assert %{current_password: ["is not valid"]} = errors_on(changeset)
     end
 
     test "applies the e-mail without persisting it", %{user: user} do
-      email = unique_email()
-      {:ok, user} = Accounts.apply_user_email(user, @valid_password, %{email: email})
+      email = unique_user_email()
+      {:ok, user} = Accounts.apply_user_email(user, valid_user_password(), %{email: email})
       assert user.email == email
       assert Accounts.get_user!(user.id).email != email
     end
@@ -187,7 +175,7 @@ defmodule Demo.AccountsTest do
   describe "update_user_email/2" do
     setup do
       user = user_fixture()
-      email = unique_email()
+      email = unique_user_email()
 
       token =
         capture_user_token(fn url ->
@@ -241,7 +229,7 @@ defmodule Demo.AccountsTest do
 
     test "validates password", %{user: user} do
       {:error, changeset} =
-        Accounts.update_user_password(user, @valid_password, %{
+        Accounts.update_user_password(user, valid_user_password(), %{
           password: "not valid",
           password_confirmation: "another"
         })
@@ -256,21 +244,23 @@ defmodule Demo.AccountsTest do
       too_long = String.duplicate("db", 100)
 
       {:error, changeset} =
-        Accounts.update_user_password(user, @valid_password, %{password: too_long})
+        Accounts.update_user_password(user, valid_user_password(), %{password: too_long})
 
       assert "should be at most 80 character(s)" in errors_on(changeset).password
     end
 
     test "validates current password", %{user: user} do
       {:error, changeset} =
-        Accounts.update_user_password(user, "invalid", %{password: @valid_password})
+        Accounts.update_user_password(user, "invalid", %{password: valid_user_password()})
 
       assert %{current_password: ["is not valid"]} = errors_on(changeset)
     end
 
     test "updates the password", %{user: user} do
       {:ok, _} =
-        Accounts.update_user_password(user, @valid_password, %{password: "new valid password"})
+        Accounts.update_user_password(user, valid_user_password(), %{
+          password: "new valid password"
+        })
 
       assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
     end
@@ -279,7 +269,9 @@ defmodule Demo.AccountsTest do
       _ = Accounts.generate_session_token(user)
 
       {:ok, _} =
-        Accounts.update_user_password(user, @valid_password, %{password: "new valid password"})
+        Accounts.update_user_password(user, valid_user_password(), %{
+          password: "new valid password"
+        })
 
       refute Repo.get_by(UserToken, user_id: user.id)
     end
