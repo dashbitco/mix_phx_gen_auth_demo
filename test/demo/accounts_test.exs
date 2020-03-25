@@ -16,7 +16,7 @@ defmodule Demo.AccountsTest do
     end
   end
 
-  describe "get_user_by_email_nad_password/1" do
+  describe "get_user_by_email_and_password/1" do
     test "does not return the user if the email does not exist" do
       refute Accounts.get_user_by_email_and_password("unknown@example.com", "hello world!")
     end
