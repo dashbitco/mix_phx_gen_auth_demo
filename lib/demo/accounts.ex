@@ -287,7 +287,7 @@ defmodule Demo.Accounts do
     |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, ["confirm"]))
   end
 
-  ## Reset passwword
+  ## Reset password
 
   @doc """
   Delivers the reset password e-mail to the given user.
