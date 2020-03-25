@@ -2,20 +2,29 @@ defmodule Demo.AccountsTest do
   use Demo.DataCase
 
   alias Demo.Accounts
-  alias Demo.Accounts.User
+  alias Demo.Accounts.{User, UserToken}
 
   @valid_password "hello world!"
 
+  def unique_email, do: "user#{System.unique_integer()}@example.com"
+
   def user_fixture(attrs \\ %{}) do
     {:ok, user} =
-      %{
-        email: "user#{System.unique_integer()}@example.com",
-        password: @valid_password
-      }
+      %{email: unique_email(), password: @valid_password}
       |> Map.merge(Map.new(attrs))
       |> Accounts.register_user()
 
     user
+  end
+
+  def capture_user_token(fun) do
+    captured =
+      ExUnit.CaptureIO.capture_io(fn ->
+        fun.(&"[TOKEN]#{&1}[TOKEN]")
+      end)
+
+    [_, token, _] = String.split(captured, "[TOKEN]")
+    token
   end
 
   describe "get_user_by_email/1" do
@@ -91,7 +100,7 @@ defmodule Demo.AccountsTest do
     end
 
     test "registers users with an encrypted password" do
-      email = "user#{System.unique_integer()}@example.com"
+      email = unique_email()
       {:ok, user} = Accounts.register_user(%{email: email, password: @valid_password})
       assert user.email == email
       assert is_binary(user.encrypted_password)
@@ -143,16 +152,76 @@ defmodule Demo.AccountsTest do
     end
 
     test "validates current password", %{user: user} do
-      email = "user#{System.unique_integer()}@example.com"
-      {:error, changeset} = Accounts.apply_user_email(user, "invalid", %{email: email})
+      {:error, changeset} = Accounts.apply_user_email(user, "invalid", %{email: unique_email()})
       assert %{current_password: ["is not valid"]} = errors_on(changeset)
     end
 
     test "applies the e-mail without persisting it", %{user: user} do
-      email = "user#{System.unique_integer()}@example.com"
+      email = unique_email()
       {:ok, user} = Accounts.apply_user_email(user, @valid_password, %{email: email})
       assert user.email == email
       assert Accounts.get_user!(user.id).email != email
+    end
+  end
+
+  describe "deliver_update_email_instructions/3" do
+    setup do
+      %{user: user_fixture()}
+    end
+
+    test "sends token through notification", %{user: user} do
+      token =
+        capture_user_token(fn url ->
+          assert Accounts.deliver_update_email_instructions(user, "current@example.com", url) ==
+                   :ok
+        end)
+
+      {:ok, token} = Base.url_decode64(token, padding: false)
+      assert user_token = Repo.get_by(UserToken, token: :crypto.hash(:sha256, token))
+      assert user_token.user_id == user.id
+      assert user_token.sent_to == user.email
+      assert user_token.context == "change:current@example.com"
+    end
+  end
+
+  describe "update_user_email/2" do
+    setup do
+      user = user_fixture()
+      email = unique_email()
+
+      token =
+        capture_user_token(fn url ->
+          Accounts.deliver_update_email_instructions(%{user | email: email}, user.email, url)
+        end)
+
+      %{user: user, token: token, email: email}
+    end
+
+    test "updates the e-mail with a valid token", %{user: user, token: token, email: email} do
+      assert Accounts.update_user_email(user, token) == :ok
+      changed_user = Repo.get!(User, user.id)
+      assert changed_user.email != user.email
+      assert changed_user.email == email
+      refute Repo.get_by(UserToken, user_id: user.id)
+    end
+
+    test "does not update e-mail with invalid token", %{user: user} do
+      assert Accounts.update_user_email(user, "oops") == :error
+      assert Repo.get!(User, user.id).email == user.email
+      assert Repo.get_by(UserToken, user_id: user.id)
+    end
+
+    test "does not update e-mail if user e-mail changed", %{user: user, token: token} do
+      assert Accounts.update_user_email(%{user | email: "current@example.com"}, token) == :error
+      assert Repo.get!(User, user.id).email == user.email
+      assert Repo.get_by(UserToken, user_id: user.id)
+    end
+
+    test "does not update e-mail if token expired", %{user: user, token: token} do
+      {1, nil} = Repo.update_all(UserToken, set: [inserted_at: ~N[2020-01-01 00:00:00]])
+      assert Accounts.update_user_email(user, token) == :error
+      assert Repo.get!(User, user.id).email == user.email
+      assert Repo.get_by(UserToken, user_id: user.id)
     end
   end
 end
