@@ -121,6 +121,24 @@ defmodule DemoWeb.UserAuthTest do
       assert get_flash(conn, :error) == "You must login to access this page."
     end
 
+    test "stores the path to redirect to on GET", %{conn: conn} do
+      halted_conn =
+        %{conn | request_path: "/foo?bar"}
+        |> fetch_flash()
+        |> UserAuth.require_authenticated_user([])
+
+      assert halted_conn.halted
+      assert get_session(halted_conn, :user_return_to) == "/foo?bar"
+
+      halted_conn =
+        %{conn | request_path: "/foo?bar", method: "POST"}
+        |> fetch_flash()
+        |> UserAuth.require_authenticated_user([])
+
+      assert halted_conn.halted
+      refute get_session(halted_conn, :user_return_to)
+    end
+
     test "does not redirect if user is not authenticated", %{conn: conn, user: user} do
       conn = conn |> assign(:current_user, user) |> UserAuth.require_authenticated_user([])
       refute conn.halted

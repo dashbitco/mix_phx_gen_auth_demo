@@ -123,11 +123,17 @@ defmodule DemoWeb.UserAuth do
     else
       conn
       |> put_flash(:error, "You must login to access this page.")
-      |> put_session(:user_return_to, conn.request_path)
+      |> maybe_store_return_to()
       |> redirect(to: Routes.user_session_path(conn, :new))
       |> halt()
     end
   end
+
+  defp maybe_store_return_to(%{method: "GET", request_path: request_path} = conn) do
+    put_session(conn, :user_return_to, request_path)
+  end
+
+  defp maybe_store_return_to(conn), do: conn
 
   defp signed_in_path(_conn), do: "/"
 end
