@@ -1,4 +1,4 @@
-defmodule DemoWeb.UserconfirmationControllerTest do
+defmodule DemoWeb.UserConfirmationControllerTest do
   use DemoWeb.ConnCase
 
   alias Demo.Accounts
