@@ -85,7 +85,7 @@ defmodule DemoWeb.UserSettingsControllerTest do
     end
   end
 
-  describe "GET /users/settings/confirm_email" do
+  describe "GET /users/settings/confirm_email/:token" do
     setup %{user: user} do
       email = unique_user_email()
 
@@ -97,12 +97,16 @@ defmodule DemoWeb.UserSettingsControllerTest do
       %{token: token, email: email}
     end
 
-    test "updates the user email", %{conn: conn, user: user, token: token, email: email} do
+    test "updates the user email once", %{conn: conn, user: user, token: token, email: email} do
       conn = get(conn, Routes.user_settings_path(conn, :confirm_email, token))
       assert redirected_to(conn) == "/users/settings"
       assert get_flash(conn, :info) =~ "E-mail changed successfully"
       refute Accounts.get_user_by_email(user.email)
       assert Accounts.get_user_by_email(email)
+
+      conn = get(conn, Routes.user_settings_path(conn, :confirm_email, token))
+      assert redirected_to(conn) == "/users/settings"
+      assert get_flash(conn, :error) =~ "Email change token is invalid or it has expired"
     end
 
     test "does not update email with invalid token", %{conn: conn, user: user} do
