@@ -22,6 +22,8 @@ defmodule DemoWeb.ConnCase do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
+      import DemoWeb.ConnCase
+
       alias DemoWeb.Router.Helpers, as: Routes
 
       # The default endpoint for testing
@@ -37,5 +39,13 @@ defmodule DemoWeb.ConnCase do
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+
+  def login_user(conn, user) do
+    token = Demo.Accounts.generate_session_token(user)
+
+    conn
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:user_token, token)
   end
 end
