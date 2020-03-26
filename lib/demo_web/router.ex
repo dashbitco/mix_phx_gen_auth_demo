@@ -27,7 +27,7 @@ defmodule DemoWeb.Router do
   #   pipe_through :api
   # end
 
-  ## New routes
+  ## Authentication routes
 
   scope "/", DemoWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
