@@ -41,6 +41,24 @@ defmodule DemoWeb.ConnCase do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
+  @doc """
+  Setup helper that registers and logs in users.
+
+      setup :register_and_login_user
+
+  It stores an updated connection and a register user in the
+  test context.
+  """
+  def register_and_login_user(%{conn:  conn}) do
+    user = Demo.AccountsFixtures.user_fixture()
+    %{conn: login_user(conn, user), user: user}
+  end
+
+  @doc """
+  Logs the given `user` into the `conn`.
+
+  It returns an updated `conn`.
+  """
   def login_user(conn, user) do
     token = Demo.Accounts.generate_session_token(user)
 

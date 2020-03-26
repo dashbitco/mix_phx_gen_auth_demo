@@ -4,7 +4,7 @@ defmodule DemoWeb.UserRegistrationControllerTest do
   import Demo.AccountsFixtures
 
   describe "GET /users/register" do
-    test "renders registraation page", %{conn: conn} do
+    test "renders registration page", %{conn: conn} do
       conn = get(conn, Routes.user_registration_path(conn, :new))
       response = html_response(conn, 200)
       assert response =~ "<h1>Register</h1>"
@@ -20,7 +20,7 @@ defmodule DemoWeb.UserRegistrationControllerTest do
 
   describe "POST /users/register" do
     @tag :capture_log
-    test "creates and account logs the user in", %{conn: conn} do
+    test "creates account and logs the user in", %{conn: conn} do
       email = unique_user_email()
 
       conn =
