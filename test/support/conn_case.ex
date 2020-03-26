@@ -46,10 +46,10 @@ defmodule DemoWeb.ConnCase do
 
       setup :register_and_login_user
 
-  It stores an updated connection and a register user in the
+  It stores an updated connection and a registered user in the
   test context.
   """
-  def register_and_login_user(%{conn:  conn}) do
+  def register_and_login_user(%{conn: conn}) do
     user = Demo.AccountsFixtures.user_fixture()
     %{conn: login_user(conn, user), user: user}
   end
