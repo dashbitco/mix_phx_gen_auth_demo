@@ -2,10 +2,9 @@ defmodule Demo.Accounts.UserNotifier do
   # For simplicity, this module simply logs messages to the terminal.
   # You should replace it by a proper e-mail or notification tool, such as:
   #
-  #   * Swoosh - https://github.com/swoosh/swoosh
-  #   * Bamboo - https://github.com/thoughtbot/bamboo
+  #   * Swoosh - https://hexdocs.pm/swoosh
+  #   * Bamboo - https://hexdocs.pm/bamboo
   #
-
   require Logger
 
   @doc """

@@ -53,6 +53,7 @@ defmodule DemoWeb.UserResetPasswordController do
       conn
       |> put_flash(:error, "Reset password token is invalid or it has expired.")
       |> redirect(to: "/")
+      |> halt()
     end
   end
 end
