@@ -16,7 +16,7 @@ defmodule Demo.AccountsFixtures do
 
   def capture_user_token(fun) do
     captured =
-      ExUnit.CaptureIO.capture_io(fn ->
+      ExUnit.CaptureLog.capture_log(fn ->
         fun.(&"[TOKEN]#{&1}[TOKEN]")
       end)
 
