@@ -77,6 +77,10 @@ defmodule Demo.AccountsTest do
       %{email: email} = user_fixture()
       {:error, changeset} = Accounts.register_user(%{email: email})
       assert "has already been taken" in errors_on(changeset).email
+
+      # Now try with the upcase e-mail too
+      {:error, changeset} = Accounts.register_user(%{email: String.upcase(email)})
+      assert "has already been taken" in errors_on(changeset).email
     end
 
     test "registers users with an encrypted password" do
