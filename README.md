@@ -2,7 +2,7 @@
 
 ## Spec
 
-We will two database tables: "users" and "users_tokens":
+We will have two database tables: "users" and "users_tokens":
 
 * "users" will have the "encrypted_password", "email" and "confirmed_at" fields plus timestamps
 * "users_tokens" will have "token", "context", "sent_to", "inserted_at" fields
