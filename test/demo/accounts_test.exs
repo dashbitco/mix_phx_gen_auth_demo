@@ -290,6 +290,15 @@ defmodule Demo.AccountsTest do
       token = Accounts.generate_session_token(user)
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.context == "session"
+
+      # Creating the same token for another user fail
+      assert_raise Ecto.ConstraintError, fn ->
+        Repo.insert!(%UserToken{
+          token: user_token.token,
+          user_id: user_fixture().id,
+          context: "session"
+        })
+      end
     end
   end
 

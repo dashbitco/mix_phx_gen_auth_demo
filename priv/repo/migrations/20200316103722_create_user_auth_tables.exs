@@ -21,6 +21,6 @@ defmodule Demo.Repo.Migrations.CreateUserAuthTables do
       add :inserted_at, :naive_datetime
     end
 
-    create unique_index(:user_tokens, [:token])
+    create unique_index(:user_tokens, [:context, :token])
   end
 end
