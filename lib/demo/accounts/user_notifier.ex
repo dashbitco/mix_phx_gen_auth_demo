@@ -5,13 +5,17 @@ defmodule Demo.Accounts.UserNotifier do
   #   * Swoosh - https://hexdocs.pm/swoosh
   #   * Bamboo - https://hexdocs.pm/bamboo
   #
-  require Logger
+  defp deliver(to, body) do
+    require Logger
+    Logger.debug(body)
+    {:ok, %{to: to, body: body}}
+  end
 
   @doc """
   Deliver instructions to confirm account.
   """
   def deliver_confirmation_instructions(user, url) do
-    Logger.warn("""
+    deliver(user.email, """
 
     ==============================
 
@@ -31,7 +35,7 @@ defmodule Demo.Accounts.UserNotifier do
   Deliver instructions to reset password account.
   """
   def deliver_reset_password_instructions(user, url) do
-    Logger.warn("""
+    deliver(user.email, """
 
     ==============================
 
@@ -51,7 +55,7 @@ defmodule Demo.Accounts.UserNotifier do
   Deliver instructions to update your e-mail.
   """
   def deliver_update_email_instructions(user, url) do
-    Logger.warn("""
+    deliver(user.email, """
 
     ==============================
 

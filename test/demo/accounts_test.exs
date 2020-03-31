@@ -163,9 +163,8 @@ defmodule Demo.AccountsTest do
 
     test "sends token through notification", %{user: user} do
       token =
-        capture_user_token(fn url ->
-          assert Accounts.deliver_update_email_instructions(user, "current@example.com", url) ==
-                   :ok
+        extract_user_token(fn url ->
+          Accounts.deliver_update_email_instructions(user, "current@example.com", url)
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -182,7 +181,7 @@ defmodule Demo.AccountsTest do
       email = unique_user_email()
 
       token =
-        capture_user_token(fn url ->
+        extract_user_token(fn url ->
           Accounts.deliver_update_email_instructions(%{user | email: email}, user.email, url)
         end)
 
@@ -340,9 +339,8 @@ defmodule Demo.AccountsTest do
 
     test "sends token through notification", %{user: user} do
       token =
-        capture_user_token(fn url ->
-          assert Accounts.deliver_user_confirmation_instructions(user, url) ==
-                   :ok
+        extract_user_token(fn url ->
+          Accounts.deliver_user_confirmation_instructions(user, url)
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -358,7 +356,7 @@ defmodule Demo.AccountsTest do
       user = user_fixture()
 
       token =
-        capture_user_token(fn url ->
+        extract_user_token(fn url ->
           Accounts.deliver_user_confirmation_instructions(user, url)
         end)
 
@@ -394,9 +392,8 @@ defmodule Demo.AccountsTest do
 
     test "sends token through notification", %{user: user} do
       token =
-        capture_user_token(fn url ->
-          assert Accounts.deliver_user_reset_password_instructions(user, url) ==
-                   :ok
+        extract_user_token(fn url ->
+          Accounts.deliver_user_reset_password_instructions(user, url)
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -412,7 +409,7 @@ defmodule Demo.AccountsTest do
       user = user_fixture()
 
       token =
-        capture_user_token(fn url ->
+        extract_user_token(fn url ->
           Accounts.deliver_user_reset_password_instructions(user, url)
         end)
 

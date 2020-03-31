@@ -158,7 +158,7 @@ defmodule Demo.Accounts do
   ## Examples
 
       iex> deliver_update_email_instructions(user, current_email, &Routes.user_update_email_url(conn, :edit))
-      :ok
+      {:ok, %{to: ..., body: ...}}
 
   """
   def deliver_update_email_instructions(%User{} = user, current_email, update_email_url_fun)
@@ -168,7 +168,6 @@ defmodule Demo.Accounts do
 
     Repo.insert!(user_token)
     UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
-    :ok
   end
 
   @doc """
@@ -247,7 +246,7 @@ defmodule Demo.Accounts do
   ## Examples
 
       iex> deliver_user_confirmation_instructions(user, &Routes.user_confirmation_url(conn, :confirm))
-      :ok
+      {:ok, %{to: ..., body: ...}}
 
       iex> deliver_user_confirmation_instructions(confirmed_user, &Routes.user_confirmation_url(conn, :confirm))
       {:error, :already_confirmed}
@@ -261,7 +260,6 @@ defmodule Demo.Accounts do
       {encoded_token, user_token} = UserToken.build_user_email_token(user, "confirm")
       Repo.insert!(user_token)
       UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
-      :ok
     end
   end
 
@@ -295,7 +293,7 @@ defmodule Demo.Accounts do
   ## Examples
 
       iex> deliver_user_reset_password_instructions(user, &Routes.user_reset_password_url(conn, :edit))
-      :ok
+      {:ok, %{to: ..., body: ...}}
 
   """
   def deliver_user_reset_password_instructions(%User{} = user, reset_password_url_fun)
@@ -303,7 +301,6 @@ defmodule Demo.Accounts do
     {encoded_token, user_token} = UserToken.build_user_email_token(user, "reset_password")
     Repo.insert!(user_token)
     UserNotifier.deliver_reset_password_instructions(user, reset_password_url_fun.(encoded_token))
-    :ok
   end
 
   @doc """

@@ -45,7 +45,7 @@ defmodule DemoWeb.UserResetPasswordControllerTest do
   describe "GET /users/reset_password/:token" do
     setup %{user: user} do
       token =
-        capture_user_token(fn url ->
+        extract_user_token(fn url ->
           Accounts.deliver_user_reset_password_instructions(user, url)
         end)
 
@@ -67,7 +67,7 @@ defmodule DemoWeb.UserResetPasswordControllerTest do
   describe "PUT /users/reset_password/:token" do
     setup %{user: user} do
       token =
-        capture_user_token(fn url ->
+        extract_user_token(fn url ->
           Accounts.deliver_user_reset_password_instructions(user, url)
         end)
 

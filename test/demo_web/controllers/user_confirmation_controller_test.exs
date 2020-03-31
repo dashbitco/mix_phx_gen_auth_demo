@@ -58,7 +58,7 @@ defmodule DemoWeb.UserConfirmationControllerTest do
   describe "GET /users/confirm/:token" do
     test "confirms the given token once", %{conn: conn, user: user} do
       token =
-        capture_user_token(fn url ->
+        extract_user_token(fn url ->
           Accounts.deliver_user_confirmation_instructions(user, url)
         end)
 

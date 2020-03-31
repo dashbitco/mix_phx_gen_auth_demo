@@ -14,13 +14,9 @@ defmodule Demo.AccountsFixtures do
     user
   end
 
-  def capture_user_token(fun) do
-    captured =
-      ExUnit.CaptureLog.capture_log(fn ->
-        fun.(&"[TOKEN]#{&1}[TOKEN]")
-      end)
-
-    [_, token, _] = String.split(captured, "[TOKEN]")
+  def extract_user_token(fun) do
+    {:ok, captured} = fun.(&"[TOKEN]#{&1}[TOKEN]")
+    [_, token, _] = String.split(captured.body, "[TOKEN]")
     token
   end
 end

@@ -90,7 +90,7 @@ defmodule DemoWeb.UserSettingsControllerTest do
       email = unique_user_email()
 
       token =
-        capture_user_token(fn url ->
+        extract_user_token(fn url ->
           Accounts.deliver_update_email_instructions(%{user | email: email}, user.email, url)
         end)
 
