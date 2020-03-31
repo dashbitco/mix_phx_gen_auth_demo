@@ -5,6 +5,13 @@ defmodule Demo.Accounts.UserToken do
   @hash_algorithm :sha256
   @rand_size 32
 
+  # It is very important to keep the reset password token expiry short,
+  # since someone with access to the e-mail may take over the account.
+  @reset_password_validity_in_days 1
+  @confirm_validity_in_days 7
+  @change_email_validity_in_days 7
+  @session_validity_in_days 60
+
   schema "user_tokens" do
     field :token, :binary
     field :context, :string
@@ -33,7 +40,7 @@ defmodule Demo.Accounts.UserToken do
     query =
       from token in token_and_context_query(token, "session"),
         join: user in assoc(token, :user),
-        where: token.inserted_at > ago(60, "day"),
+        where: token.inserted_at > ago(@session_validity_in_days, "day"),
         select: user
 
     {:ok, query}
@@ -73,11 +80,12 @@ defmodule Demo.Accounts.UserToken do
     case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+        days = days_for_context(context)
 
         query =
           from token in token_and_context_query(hashed_token, context),
             join: user in assoc(token, :user),
-            where: token.inserted_at > ago(1, "week") and token.sent_to == user.email,
+            where: token.inserted_at > ago(^days, "day") and token.sent_to == user.email,
             select: user
 
         {:ok, query}
@@ -86,6 +94,9 @@ defmodule Demo.Accounts.UserToken do
         :error
     end
   end
+
+  defp days_for_context("confirm"), do: @confirm_validity_in_days
+  defp days_for_context("reset_password"), do: @reset_password_validity_in_days
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
@@ -99,7 +110,7 @@ defmodule Demo.Accounts.UserToken do
 
         query =
           from token in token_and_context_query(hashed_token, context),
-            where: token.inserted_at > ago(1, "week")
+            where: token.inserted_at > ago(@change_email_validity_in_days, "day")
 
         {:ok, query}
 
