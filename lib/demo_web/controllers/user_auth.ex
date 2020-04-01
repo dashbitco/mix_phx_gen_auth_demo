@@ -44,7 +44,7 @@ defmodule DemoWeb.UserAuth do
   # you must explicitly fetch the session data before clearing
   # and then immediately set it after clearing, for example:
   #
-  #     def renew_session(conn) do
+  #     defp renew_session(conn) do
   #       preferred_locale = get_session(conn, :preferred_locale)
   #
   #       conn
