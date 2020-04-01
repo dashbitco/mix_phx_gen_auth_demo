@@ -78,7 +78,7 @@ defmodule Demo.AccountsTest do
       {:error, changeset} = Accounts.register_user(%{email: email})
       assert "has already been taken" in errors_on(changeset).email
 
-      # Now try with the upcase e-mail too
+      # Now try with the upper cased e-mail too, to check that email case is ignored.
       {:error, changeset} = Accounts.register_user(%{email: String.upcase(email)})
       assert "has already been taken" in errors_on(changeset).email
     end
