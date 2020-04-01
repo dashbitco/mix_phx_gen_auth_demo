@@ -99,7 +99,7 @@ defmodule DemoWeb.UserAuth do
   end
 
   @doc """
-  Used for routes that requires the user to not be authenticated.
+  Used for routes that require the user to not be authenticated.
   """
   def redirect_if_user_is_authenticated(conn, _opts) do
     if conn.assigns[:current_user] do
@@ -112,7 +112,7 @@ defmodule DemoWeb.UserAuth do
   end
 
   @doc """
-  Used for routes that requires the user to be authenticated.
+  Used for routes that require the user to be authenticated.
 
   If you want to enforce the user e-mail is confirmed before
   they use the application at all, here would be a good place.
