@@ -6,7 +6,7 @@ defmodule Demo.Repo.Migrations.CreateUserAuthTables do
 
     create table(:users) do
       add :email, :citext, null: false
-      add :encrypted_password, :string, null: false
+      add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
       timestamps()
     end

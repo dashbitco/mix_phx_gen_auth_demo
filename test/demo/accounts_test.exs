@@ -87,7 +87,7 @@ defmodule Demo.AccountsTest do
       email = unique_user_email()
       {:ok, user} = Accounts.register_user(%{email: email, password: valid_user_password()})
       assert user.email == email
-      assert is_binary(user.encrypted_password)
+      assert is_binary(user.hashed_password)
       assert is_nil(user.confirmed_at)
     end
   end

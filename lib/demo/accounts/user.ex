@@ -5,7 +5,7 @@ defmodule Demo.Accounts.User do
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true
-    field :encrypted_password, :string
+    field :hashed_password, :string
     field :confirmed_at, :naive_datetime
 
     timestamps()
@@ -49,7 +49,7 @@ defmodule Demo.Accounts.User do
     password = get_change(changeset, :password)
 
     if password && changeset.valid? do
-      put_change(changeset, :encrypted_password, Bcrypt.hash_pwd_salt(password))
+      put_change(changeset, :hashed_password, Bcrypt.hash_pwd_salt(password))
     else
       changeset
     end
@@ -96,9 +96,9 @@ defmodule Demo.Accounts.User do
   If there is no user or the user doesn't have a password,
   we encrypt a blank password to avoid timing attacks.
   """
-  def valid_password?(%Demo.Accounts.User{encrypted_password: encrypted_password}, password)
-      when is_binary(encrypted_password) and byte_size(password) > 0 do
-    Bcrypt.verify_pass(password, encrypted_password)
+  def valid_password?(%Demo.Accounts.User{hashed_password: hashed_password}, password)
+      when is_binary(hashed_password) and byte_size(password) > 0 do
+    Bcrypt.verify_pass(password, hashed_password)
   end
 
   def valid_password?(_, _) do
