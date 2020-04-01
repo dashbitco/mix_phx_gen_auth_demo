@@ -17,7 +17,7 @@ defmodule Demo.Accounts.User do
   It is important to validate the length of both e-mail and password.
   Otherwise databases may truncate them without warnings, which could
   lead to unpredictable or insecure behaviour. Long passwords may also
-  be very expensive to encrypt.
+  be very expensive to hash.
   """
   def registration_changeset(user, attrs) do
     user
@@ -42,10 +42,10 @@ defmodule Demo.Accounts.User do
     # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
     # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
     # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
-    |> maybe_encrypt_password()
+    |> maybe_hash_password()
   end
 
-  defp maybe_encrypt_password(changeset) do
+  defp maybe_hash_password(changeset) do
     password = get_change(changeset, :password)
 
     if password && changeset.valid? do
@@ -94,7 +94,7 @@ defmodule Demo.Accounts.User do
   Returns the given user if valid,
 
   If there is no user or the user doesn't have a password,
-  we encrypt a blank password to avoid timing attacks.
+  we hash a blank password to avoid timing attacks.
   """
   def valid_password?(%Demo.Accounts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
