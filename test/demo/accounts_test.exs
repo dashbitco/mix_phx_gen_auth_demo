@@ -83,7 +83,7 @@ defmodule Demo.AccountsTest do
       assert "has already been taken" in errors_on(changeset).email
     end
 
-    test "registers users with an encrypted password" do
+    test "registers users with a hashed password" do
       email = unique_user_email()
       {:ok, user} = Accounts.register_user(%{email: email, password: valid_user_password()})
       assert user.email == email
@@ -290,7 +290,7 @@ defmodule Demo.AccountsTest do
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.context == "session"
 
-      # Creating the same token for another user fail
+      # Creating the same token for another user should fail
       assert_raise Ecto.ConstraintError, fn ->
         Repo.insert!(%UserToken{
           token: user_token.token,
