@@ -325,7 +325,7 @@ defmodule Demo.Accounts do
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking user reset password.
+  Resets the user password.
 
   ## Examples
 
