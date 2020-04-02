@@ -1,5 +1,5 @@
 defmodule DemoWeb.UserSettingsControllerTest do
-  use DemoWeb.ConnCase
+  use DemoWeb.ConnCase, async: true
 
   alias Demo.Accounts
   import Demo.AccountsFixtures

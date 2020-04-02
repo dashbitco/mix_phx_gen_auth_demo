@@ -1,5 +1,5 @@
 defmodule DemoWeb.UserSessionControllerTest do
-  use DemoWeb.ConnCase
+  use DemoWeb.ConnCase, async: true
 
   import Demo.AccountsFixtures
 

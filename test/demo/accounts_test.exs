@@ -1,5 +1,5 @@
 defmodule Demo.AccountsTest do
-  use Demo.DataCase
+  use Demo.DataCase, async: true
 
   import Demo.AccountsFixtures
   alias Demo.Accounts

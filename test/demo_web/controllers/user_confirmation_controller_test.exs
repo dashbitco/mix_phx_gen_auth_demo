@@ -1,5 +1,5 @@
 defmodule DemoWeb.UserConfirmationControllerTest do
-  use DemoWeb.ConnCase
+  use DemoWeb.ConnCase, async: true
 
   alias Demo.Accounts
   alias Demo.Repo
