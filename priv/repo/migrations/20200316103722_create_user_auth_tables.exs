@@ -18,7 +18,7 @@ defmodule Demo.Repo.Migrations.CreateUserAuthTables do
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string
-      add :inserted_at, :naive_datetime
+      timestamps(updated_at: false)
     end
 
     create unique_index(:user_tokens, [:context, :token])
