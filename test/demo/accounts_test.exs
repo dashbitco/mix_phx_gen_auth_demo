@@ -460,7 +460,8 @@ defmodule Demo.AccountsTest do
     end
 
     test "updates the password", %{user: user} do
-      {:ok, _} = Accounts.reset_user_password(user, %{password: "new valid password"})
+      {:ok, updated_user} = Accounts.reset_user_password(user, %{password: "new valid password"})
+      assert is_nil(updated_user.password)
       assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
     end
 
