@@ -79,7 +79,7 @@ defmodule Demo.Accounts.User do
   def password_changeset(user, attrs) do
     user
     |> cast(attrs, [:password])
-    |> validate_confirmation(:password)
+    |> validate_confirmation(:password, message: "does not match password")
     |> validate_password()
   end
 

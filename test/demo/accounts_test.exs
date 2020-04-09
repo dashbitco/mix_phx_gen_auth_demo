@@ -240,7 +240,7 @@ defmodule Demo.AccountsTest do
 
       assert %{
                password: ["should be at least 12 character(s)"],
-               password_confirmation: ["does not match confirmation"]
+               password_confirmation: ["does not match password"]
              } = errors_on(changeset)
     end
 
@@ -449,7 +449,7 @@ defmodule Demo.AccountsTest do
 
       assert %{
                password: ["should be at least 12 character(s)"],
-               password_confirmation: ["does not match confirmation"]
+               password_confirmation: ["does not match password"]
              } = errors_on(changeset)
     end
 

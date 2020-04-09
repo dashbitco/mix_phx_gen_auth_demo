@@ -50,7 +50,7 @@ defmodule DemoWeb.UserSettingsControllerTest do
       response = html_response(old_password_conn, 200)
       assert response =~ "<h1>Settings</h1>"
       assert response =~ "should be at least 12 character(s)"
-      assert response =~ "does not match confirmation"
+      assert response =~ "does not match password"
       assert response =~ "is not valid"
 
       assert get_session(old_password_conn, :user_token) == get_session(conn, :user_token)
