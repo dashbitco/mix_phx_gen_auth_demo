@@ -89,6 +89,7 @@ defmodule Demo.AccountsTest do
       assert user.email == email
       assert is_binary(user.hashed_password)
       assert is_nil(user.confirmed_at)
+      assert is_nil(user.password)
     end
   end
 
@@ -260,11 +261,12 @@ defmodule Demo.AccountsTest do
     end
 
     test "updates the password", %{user: user} do
-      {:ok, _} =
+      {:ok, user} =
         Accounts.update_user_password(user, valid_user_password(), %{
           password: "new valid password"
         })
 
+      assert is_nil(user.password)
       assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
     end
 
@@ -328,7 +330,7 @@ defmodule Demo.AccountsTest do
       user = user_fixture()
       token = Accounts.generate_session_token(user)
       assert Accounts.delete_session_token(token) == :ok
-      refute Accounts.get_user_by_session_token("oops")
+      refute Accounts.get_user_by_session_token(token)
     end
   end
 
@@ -466,6 +468,12 @@ defmodule Demo.AccountsTest do
       _ = Accounts.generate_session_token(user)
       {:ok, _} = Accounts.reset_user_password(user, %{password: "new valid password"})
       refute Repo.get_by(UserToken, user_id: user.id)
+    end
+  end
+
+  describe "inspect/2" do
+    test "does not include password" do
+      refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
 end

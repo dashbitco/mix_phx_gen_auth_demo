@@ -2,6 +2,7 @@ defmodule Demo.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Inspect, except: [:password]}
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true
@@ -49,7 +50,9 @@ defmodule Demo.Accounts.User do
     password = get_change(changeset, :password)
 
     if password && changeset.valid? do
-      put_change(changeset, :hashed_password, Bcrypt.hash_pwd_salt(password))
+      changeset
+      |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
+      |> delete_change(:password)
     else
       changeset
     end
