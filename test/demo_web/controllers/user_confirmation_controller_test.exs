@@ -71,13 +71,13 @@ defmodule DemoWeb.UserConfirmationControllerTest do
 
       conn = get(conn, Routes.user_confirmation_path(conn, :confirm, token))
       assert redirected_to(conn) == "/"
-      assert get_flash(conn, :error) =~ "Confirmation token is invalid or it has expired"
+      assert get_flash(conn, :error) =~ "Confirmation link is invalid or it has expired"
     end
 
     test "does not confirm email with invalid token", %{conn: conn, user: user} do
       conn = get(conn, Routes.user_confirmation_path(conn, :confirm, "oops"))
       assert redirected_to(conn) == "/"
-      assert get_flash(conn, :error) =~ "Confirmation token is invalid or it has expired"
+      assert get_flash(conn, :error) =~ "Confirmation link is invalid or it has expired"
       refute Accounts.get_user!(user.id).confirmed_at
     end
   end

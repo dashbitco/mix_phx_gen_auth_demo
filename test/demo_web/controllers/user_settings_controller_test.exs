@@ -106,13 +106,13 @@ defmodule DemoWeb.UserSettingsControllerTest do
 
       conn = get(conn, Routes.user_settings_path(conn, :confirm_email, token))
       assert redirected_to(conn) == "/users/settings"
-      assert get_flash(conn, :error) =~ "Email change token is invalid or it has expired"
+      assert get_flash(conn, :error) =~ "Email change link is invalid or it has expired"
     end
 
     test "does not update email with invalid token", %{conn: conn, user: user} do
       conn = get(conn, Routes.user_settings_path(conn, :confirm_email, "oops"))
       assert redirected_to(conn) == "/users/settings"
-      assert get_flash(conn, :error) =~ "Email change token is invalid or it has expired"
+      assert get_flash(conn, :error) =~ "Email change link is invalid or it has expired"
       assert Accounts.get_user_by_email(user.email)
     end
 

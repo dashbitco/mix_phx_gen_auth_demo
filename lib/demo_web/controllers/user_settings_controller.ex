@@ -42,7 +42,7 @@ defmodule DemoWeb.UserSettingsController do
 
       :error ->
         conn
-        |> put_flash(:error, "Email change token is invalid or it has expired.")
+        |> put_flash(:error, "Email change link is invalid or it has expired.")
         |> redirect(to: Routes.user_settings_path(conn, :edit))
     end
   end
