@@ -272,8 +272,8 @@ defmodule Demo.Accounts do
   def confirm_user(token) do
     with {:ok, query} <- UserToken.verify_user_email_token_query(token, "confirm"),
          %User{} = user <- Repo.one(query),
-         {:ok, _} <- Repo.transaction(confirm_user_multi(user)) do
-      :ok
+         {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
+      {:ok, user}
     else
       _ -> :error
     end

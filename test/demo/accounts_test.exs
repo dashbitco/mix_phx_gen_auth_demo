@@ -366,10 +366,10 @@ defmodule Demo.AccountsTest do
     end
 
     test "confirms the e-mail with a valid token", %{user: user, token: token} do
-      assert Accounts.confirm_user(token) == :ok
-      changed_user = Repo.get!(User, user.id)
-      assert changed_user.confirmed_at
-      assert changed_user.confirmed_at != user.confirmed_at
+      assert {:ok, confirmed_user} = Accounts.confirm_user(token)
+      assert confirmed_user.confirmed_at
+      assert confirmed_user.confirmed_at != user.confirmed_at
+      assert Repo.get!(User, user.id).confirmed_at
       refute Repo.get_by(UserToken, user_id: user.id)
     end
 
