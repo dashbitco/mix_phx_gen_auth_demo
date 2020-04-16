@@ -139,7 +139,7 @@ defmodule DemoWeb.UserAuthTest do
       refute get_session(halted_conn, :user_return_to)
     end
 
-    test "does not redirect if user is not authenticated", %{conn: conn, user: user} do
+    test "does not redirect if user is authenticated", %{conn: conn, user: user} do
       conn = conn |> assign(:current_user, user) |> UserAuth.require_authenticated_user([])
       refute conn.halted
       refute conn.status
