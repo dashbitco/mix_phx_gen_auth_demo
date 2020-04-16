@@ -1,4 +1,4 @@
-defmodule Demo.Repo.Migrations.CreateUserAuthTables do
+defmodule Demo.Repo.Migrations.CreateUsersAuthTables do
   use Ecto.Migration
 
   def change do
@@ -13,7 +13,7 @@ defmodule Demo.Repo.Migrations.CreateUserAuthTables do
 
     create unique_index(:users, [:email])
 
-    create table(:user_tokens) do
+    create table(:users_tokens) do
       add :user_id, references(:users, on_delete: :delete_all), null: false
       add :token, :binary, null: false
       add :context, :string, null: false
@@ -21,6 +21,6 @@ defmodule Demo.Repo.Migrations.CreateUserAuthTables do
       timestamps(updated_at: false)
     end
 
-    create unique_index(:user_tokens, [:context, :token])
+    create unique_index(:users_tokens, [:context, :token])
   end
 end
