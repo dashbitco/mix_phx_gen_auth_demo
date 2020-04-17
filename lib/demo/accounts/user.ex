@@ -97,7 +97,7 @@ defmodule Demo.Accounts.User do
   Returns the given user if valid,
 
   If there is no user or the user doesn't have a password, we call
-  `Bcrypt.no_user_verify/0` a blank password to avoid timing attacks.
+  `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(%Demo.Accounts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
