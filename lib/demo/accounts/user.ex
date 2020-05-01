@@ -47,13 +47,11 @@ defmodule Demo.Accounts.User do
   end
 
   defp maybe_hash_password(changeset) do
-    if password = get_change(changeset, :password) do
-      changeset
-      |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
-      |> delete_change(:password)
-    else
-      changeset
-    end
+    password = get_change(changeset, :password)
+
+    changeset
+    |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
+    |> delete_change(:password)
   end
 
   @doc """
