@@ -43,10 +43,10 @@ defmodule Demo.Accounts.User do
     # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
     # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
     # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
-    |> prepare_changes(&maybe_hash_password/1)
+    |> prepare_changes(&hash_password/1)
   end
 
-  defp maybe_hash_password(changeset) do
+  defp hash_password(changeset) do
     password = get_change(changeset, :password)
 
     changeset
