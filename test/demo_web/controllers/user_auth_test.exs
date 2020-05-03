@@ -18,6 +18,7 @@ defmodule DemoWeb.UserAuthTest do
     test "stores the user token in the session", %{conn: conn, user: user} do
       conn = UserAuth.login_user(conn, user)
       assert token = get_session(conn, :user_token)
+      assert get_session(conn, :live_socket_id) == "users_sessions:#{Base.url_encode64(token)}"
       assert redirected_to(conn) == "/"
       assert Accounts.get_user_by_session_token(token)
     end
@@ -58,6 +59,20 @@ defmodule DemoWeb.UserAuthTest do
       assert %{max_age: 0} = conn.resp_cookies["user_remember_me"]
       assert redirected_to(conn) == "/"
       refute Accounts.get_user_by_session_token(user_token)
+    end
+
+    test "broadcasts to the given live_socket_id", %{conn: conn} do
+      live_socket_id = "users_sessions:abcdef-token"
+      Phoenix.PubSub.subscribe(Demo.PubSub, live_socket_id)
+
+      conn
+      |> put_session(:live_socket_id, live_socket_id)
+      |> UserAuth.logout_user()
+
+      assert_receive %Phoenix.Socket.Broadcast{
+        event: "disconnect",
+        topic: "users_sessions:abcdef-token"
+      }
     end
 
     test "works even if user is already logged out", %{conn: conn} do
