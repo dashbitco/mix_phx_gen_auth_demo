@@ -63,7 +63,7 @@ defmodule DemoWeb.UserAuthTest do
 
     test "broadcasts to the given live_socket_id", %{conn: conn} do
       live_socket_id = "users_sessions:abcdef-token"
-      Phoenix.PubSub.subscribe(Demo.PubSub, live_socket_id)
+      DemoWeb.Endpoint.subscribe(live_socket_id)
 
       conn
       |> put_session(:live_socket_id, live_socket_id)
