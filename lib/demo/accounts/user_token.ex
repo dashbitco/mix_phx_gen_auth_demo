@@ -54,7 +54,7 @@ defmodule Demo.Accounts.UserToken do
   The token is valid for a week as long as users don't change
   their email.
   """
-  def build_user_email_token(user, context) do
+  def build_email_token(user, context) do
     build_hashed_token(user, context, user.email)
   end
 
@@ -76,7 +76,7 @@ defmodule Demo.Accounts.UserToken do
 
   The query returns the user found by the token.
   """
-  def verify_user_email_token_query(token, context) do
+  def verify_email_token_query(token, context) do
     case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
@@ -103,7 +103,7 @@ defmodule Demo.Accounts.UserToken do
 
   The query returns the user found by the token.
   """
-  def verify_user_change_email_token_query(token, context) do
+  def verify_change_email_token_query(token, context) do
     case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
