@@ -101,7 +101,7 @@ defmodule Demo.Accounts.UserToken do
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the user found by the token.
+  The query returns the user token record.
   """
   def verify_change_email_token_query(token, context) do
     case Base.url_decode64(token, padding: false) do

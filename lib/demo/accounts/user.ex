@@ -90,8 +90,6 @@ defmodule Demo.Accounts.User do
   @doc """
   Verifies the password.
 
-  Returns the given user if valid,
-
   If there is no user or the user doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
