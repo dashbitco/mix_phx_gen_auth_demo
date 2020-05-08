@@ -67,13 +67,15 @@ defmodule DemoWeb.UserSessionControllerTest do
   end
 
   describe "DELETE /users/logout" do
-    test "redirects if not logged in", %{conn: conn} do
-      conn = delete(conn, Routes.user_session_path(conn, :delete))
-      assert redirected_to(conn) == "/users/login"
-    end
-
     test "logs the user out", %{conn: conn, user: user} do
       conn = conn |> login_user(user) |> delete(Routes.user_session_path(conn, :delete))
+      assert redirected_to(conn) == "/"
+      refute get_session(conn, :user_token)
+      assert get_flash(conn, :info) =~ "Logged out successfully"
+    end
+
+    test "succeeds even if the user is not logged in", %{conn: conn} do
+      conn = delete(conn, Routes.user_session_path(conn, :delete))
       assert redirected_to(conn) == "/"
       refute get_session(conn, :user_token)
       assert get_flash(conn, :info) =~ "Logged out successfully"

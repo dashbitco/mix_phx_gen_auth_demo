@@ -45,7 +45,6 @@ defmodule DemoWeb.Router do
   scope "/", DemoWeb do
     pipe_through [:browser, :require_authenticated_user]
 
-    delete "/users/logout", UserSessionController, :delete
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings/update_password", UserSettingsController, :update_password
     put "/users/settings/update_email", UserSettingsController, :update_email
@@ -55,6 +54,7 @@ defmodule DemoWeb.Router do
   scope "/", DemoWeb do
     pipe_through [:browser]
 
+    delete "/users/logout", UserSessionController, :delete
     get "/users/confirm", UserConfirmationController, :new
     post "/users/confirm", UserConfirmationController, :create
     get "/users/confirm/:token", UserConfirmationController, :confirm
