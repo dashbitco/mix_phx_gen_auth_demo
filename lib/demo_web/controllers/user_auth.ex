@@ -25,7 +25,7 @@ defmodule DemoWeb.UserAuth do
   if you are not using LiveView.
   """
   def login_user(conn, user, params \\ %{}) do
-    token = Accounts.generate_session_token(user)
+    token = Accounts.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
 
     conn
@@ -72,7 +72,7 @@ defmodule DemoWeb.UserAuth do
   """
   def logout_user(conn) do
     user_token = get_session(conn, :user_token)
-    user_token && Accounts.delete_session_token(user_token)
+    user_token && Accounts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       DemoWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})

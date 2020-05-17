@@ -271,7 +271,7 @@ defmodule Demo.AccountsTest do
     end
 
     test "deletes all tokens for the given user", %{user: user} do
-      _ = Accounts.generate_session_token(user)
+      _ = Accounts.generate_user_session_token(user)
 
       {:ok, _} =
         Accounts.update_user_password(user, valid_user_password(), %{
@@ -282,13 +282,13 @@ defmodule Demo.AccountsTest do
     end
   end
 
-  describe "generate_session_token/1" do
+  describe "generate_user_session_token/1" do
     setup do
       %{user: user_fixture()}
     end
 
     test "generates a token", %{user: user} do
-      token = Accounts.generate_session_token(user)
+      token = Accounts.generate_user_session_token(user)
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.context == "session"
 
@@ -306,7 +306,7 @@ defmodule Demo.AccountsTest do
   describe "get_user_by_session_token/1" do
     setup do
       user = user_fixture()
-      token = Accounts.generate_session_token(user)
+      token = Accounts.generate_user_session_token(user)
       %{user: user, token: token}
     end
 
@@ -325,11 +325,11 @@ defmodule Demo.AccountsTest do
     end
   end
 
-  describe "delete_session_token/1" do
+  describe "delete_user_session_token/1" do
     test "deletes the token" do
       user = user_fixture()
-      token = Accounts.generate_session_token(user)
-      assert Accounts.delete_session_token(token) == :ok
+      token = Accounts.generate_user_session_token(user)
+      assert Accounts.delete_user_session_token(token) == :ok
       refute Accounts.get_user_by_session_token(token)
     end
   end
@@ -466,7 +466,7 @@ defmodule Demo.AccountsTest do
     end
 
     test "deletes all tokens for the given user", %{user: user} do
-      _ = Accounts.generate_session_token(user)
+      _ = Accounts.generate_user_session_token(user)
       {:ok, _} = Accounts.reset_user_password(user, %{password: "new valid password"})
       refute Repo.get_by(UserToken, user_id: user.id)
     end

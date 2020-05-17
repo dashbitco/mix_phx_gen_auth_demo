@@ -60,7 +60,7 @@ defmodule DemoWeb.ConnCase do
   It returns an updated `conn`.
   """
   def login_user(conn, user) do
-    token = Demo.Accounts.generate_session_token(user)
+    token = Demo.Accounts.generate_user_session_token(user)
 
     conn
     |> Phoenix.ConnTest.init_test_session(%{})
