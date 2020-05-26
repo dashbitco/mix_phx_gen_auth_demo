@@ -183,7 +183,7 @@ defmodule Demo.Accounts do
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for changing the user password.
+  Updates the user password.
 
   ## Examples
 
